@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Tabernacle: a walkthrough of Exodus 25–30</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --linen:#efe8d8; --tekhelet:#1d3566; --argaman:#5a2a63; --shani:#a3262c; --gold:#c7a042;
+  --panel:rgba(245,239,226,.96); --text:#2a241b; --muted:#6d604b; --btn:#fbf6ea; --btn-text:#1d3566;
+  --line:rgba(42,36,27,.15); --note:#f3e7c7; --tag:#fbf6ea; --tag-text:#1d3566;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --panel:rgba(20,30,58,.96); --text:#efe8d8; --muted:#b9ad95; --btn:#1d3566; --btn-text:#efe8d8;
+    --line:rgba(239,232,216,.18); --note:rgba(199,160,66,.16); --tag:#1d3566; --tag-text:#efe8d8;
+  }
+}
+:root[data-theme="dark"]{
+  --panel:rgba(20,30,58,.96); --text:#efe8d8; --muted:#b9ad95; --btn:#1d3566; --btn-text:#efe8d8;
+  --line:rgba(239,232,216,.18); --note:rgba(199,160,66,.16); --tag:#1d3566; --tag-text:#efe8d8;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{background:#cdb994;overflow:hidden;font-family:'Alegreya Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--text);-webkit-tap-highlight-color:transparent}
+#stage{position:fixed;inset:0}
+#stage canvas{display:block;touch-action:none;width:100%;height:100%}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.weave{height:6px;background:repeating-linear-gradient(90deg,var(--tekhelet) 0 16px,var(--argaman) 16px 32px,var(--shani) 32px 48px,var(--linen) 48px 54px,var(--gold) 54px 57px,var(--linen) 57px 60px)}
+.top{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0;pointer-events:none;z-index:5}
+.plaque{pointer-events:auto;background:var(--panel);border-radius:10px;overflow:hidden;box-shadow:0 6px 22px rgba(40,28,10,.25);max-width:62vw}
+.plaque .in{padding:8px 12px 9px}
+.plaque h1{font-family:'Alegreya',Georgia,serif;font-weight:700;font-size:19px;line-height:1.1;margin:0}
+.plaque p{margin:2px 0 0;font-size:13px;color:var(--muted);font-style:italic;font-family:'Alegreya',Georgia,serif}
+.pill{pointer-events:auto;border:0;background:var(--btn);color:var(--btn-text);border-radius:999px;padding:10px 15px;font-weight:700;font-size:14px;box-shadow:0 4px 16px rgba(40,28,10,.22);min-height:42px}
+.dock{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-direction:column;align-items:flex-end;gap:8px;z-index:4}
+.dock .pill{font-weight:500;font-size:13px;padding:9px 13px;min-height:38px}
+.dock .pill b{font-weight:700}
+.hint{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 100px);max-width:min(80vw,340px);background:var(--panel);border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.35;box-shadow:0 6px 20px rgba(40,28,10,.22);z-index:4;transition:opacity .4s}
+.hint.gone{opacity:0;pointer-events:none}
+.stick{position:fixed;left:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);width:128px;height:128px;border-radius:50%;background:rgba(245,239,226,.28);border:2px solid rgba(245,239,226,.85);box-shadow:0 4px 18px rgba(40,28,10,.25);z-index:4;touch-action:none;-webkit-user-select:none;user-select:none}
+.stick::after{content:'';position:absolute;inset:30%;border-radius:50%;border:1px dashed rgba(245,239,226,.7)}
+.knob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:var(--btn);border:3px solid var(--gold);box-shadow:0 4px 12px rgba(40,28,10,.35);z-index:1}
+#labels{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
+.tag{position:absolute;left:0;top:0;pointer-events:auto;border:0;background:var(--tag);color:var(--tag-text);font-family:'Alegreya',Georgia,serif;font-weight:700;font-size:13px;padding:4px 9px;border-radius:6px;white-space:nowrap;box-shadow:0 3px 10px rgba(40,28,10,.25);border-bottom:3px solid var(--gold)}
+.sheet{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:560px;max-height:60vh;background:var(--panel);border-radius:16px 16px 0 0;box-shadow:0 -10px 30px rgba(40,28,10,.3);z-index:8;display:flex;flex-direction:column;transform:translateY(105%);transition:transform .28s ease}
+.sheet.open{transform:none}
+.sheet .weave{border-radius:16px 16px 0 0;flex:none}
+.sheet .head{display:flex;gap:10px;align-items:flex-start;padding:12px 16px 6px;flex:none}
+.sheet h2{font-family:'Alegreya',Georgia,serif;font-size:23px;line-height:1.15;margin:0}
+.sheet .ref{margin:3px 0 0;color:var(--muted);font-family:'Alegreya',Georgia,serif;font-style:italic;font-size:15px}
+.x{margin-left:auto;border:0;background:transparent;color:var(--text);font-size:15px;padding:8px 10px;border-radius:8px;text-decoration:underline;text-underline-offset:3px;flex:none}
+.sheet .body{overflow-y:auto;padding:4px 16px calc(env(safe-area-inset-bottom,0px) + 18px);font-size:16px;line-height:1.5}
+.sheet ul{margin:6px 0 10px;padding-left:18px}
+.sheet li{margin:0 0 7px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
+.acts button{border:0;background:var(--tekhelet);color:#efe8d8;border-radius:999px;padding:9px 14px;font-weight:700;font-size:14px}
+.dims{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;margin:6px 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:15px}
+.dims dt{color:var(--muted)}
+.dims dd{margin:0;font-weight:500}
+.note{background:var(--note);border-left:4px solid var(--gold);padding:9px 12px;border-radius:0 8px 8px 0;font-size:15px;margin:4px 0 6px}
+.note strong{font-family:'Alegreya',Georgia,serif}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(350px,90vw);background:var(--panel);z-index:9;transform:translateX(105%);transition:transform .28s ease;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(40,28,10,.3);padding-top:env(safe-area-inset-top,0px)}
+.drawer.open{transform:none}
+.drawer .head{display:flex;align-items:center;padding:12px 14px 8px}
+.drawer h2{font-family:'Alegreya',Georgia,serif;font-size:22px;margin:0}
+.drawer .list{overflow-y:auto;padding:0 8px calc(env(safe-area-inset-bottom,0px) + 20px)}
+.drawer h3{font-family:'Alegreya',Georgia,serif;font-style:italic;font-weight:500;font-size:16px;color:var(--muted);margin:14px 8px 4px}
+.place{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--text);padding:9px 10px;border-radius:8px}
+.place:hover{background:var(--line)}
+.place span{display:block;font-weight:700;font-size:16px}
+.place small{color:var(--muted);font-size:13px}
+.fade{position:fixed;inset:0;background:#f1e6cc;opacity:0;pointer-events:none;z-index:7;transition:opacity .22s}
+.fade.on{opacity:1}
+.loading{position:fixed;inset:0;display:grid;place-items:center;background:#e9dcbf;color:#1d3566;font-family:'Alegreya',Georgia,serif;font-size:20px;z-index:20;transition:opacity .5s;padding:20px;text-align:center}
+.loading.done{opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.sheet,.drawer,.fade,.hint,.loading{transition:none}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+<div class="top">
+  <div class="plaque"><div class="in"><h1>The Tabernacle</h1><p>Exodus 25–30, to the measurements given</p></div><div class="weave"></div></div>
+  <button class="pill" id="placesBtn" aria-haspopup="dialog">Places</button>
+</div>
+<div class="dock">
+  <button class="pill" id="viewBtn">View: <b>behind Aaron</b></button>
+  <button class="pill" id="coverBtn">Tent covers: <b>on</b></button>
+  <button class="pill" id="bellBtn">Robe bells: <b>on</b></button>
+</div>
+<div class="hint" id="hint">You are Aaron, the high priest. Use the stick at bottom left to walk. Drag anywhere else to look around. Tap any object to read what Exodus says about it.</div>
+<div class="stick" id="stick" role="application" aria-label="Walking stick: drag to move Aaron"><div class="knob" id="knob"></div></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="false" aria-labelledby="cardTitle">
+  <div class="weave"></div>
+  <div class="head"><div><h2 id="cardTitle"></h2><p class="ref" id="cardRef"></p></div><button class="x" id="cardClose">Close</button></div>
+  <div class="body" id="cardBody"></div>
+</section>
+<aside class="drawer" id="drawer" role="dialog" aria-label="Places">
+  <div class="head"><h2>Places</h2><button class="x" id="drawerClose">Close</button></div>
+  <div class="weave"></div>
+  <div class="list" id="placeList"></div>
+</aside>
+<div class="fade" id="fade"></div>
+<div class="loading" id="loading">Laying out the courtyard…</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const PI=Math.PI;
+
+/* Plain-English summaries with references. 1 cubit taken as ~46 cm. */
+const INFO={
+about:{t:'How to read this model',r:'Exodus 25–30 (the instructions) and 35–40 (the building)',
+ p:['Everything is built to the measurements Exodus gives, using 1 cubit ≈ 18 in / 46 cm. Ancient cubits varied (roughly 44–52 cm), so treat metric figures as approximate.',
+    'Each card summarises the verses in plain English. Open your NIV at the reference shown to read the exact wording alongside.',
+    'Where Exodus is silent (the lampstand’s height, the basin’s size, the cherubim’s faces) the model makes a reasonable guess, and the card says so in an interpretation note.',
+    'You walk as Aaron, the high priest, dressed in the garments of Exodus 28. Only he entered the Most Holy Place, once a year (Leviticus 16).',
+    'Colours follow the text wherever it gives them: blue, purple and scarlet yarn, fine linen, gold, silver, bronze, and ram skins dyed red. Where Exodus names the materials but no design (the gate and the entrance screen), only the plain woven threads are shown.',
+    'Controls: the stick at bottom left walks Aaron (W, A, S, D or arrow keys on a keyboard). Drag anywhere else to look around. Pinch or scroll to zoom.'],
+ n:'Chapters 36–40 repeat these instructions almost word for word as Bezalel and Oholiab carry them out, which is a useful cross-check for any detail.'},
+offering:{t:'The offering for the sanctuary',r:'Exodus 25:1–9; 35:4–29; 36:3–7; 38:24–31',
+ p:['God tells Moses to receive an offering from everyone whose heart moves them to give.',
+    'The materials: gold, silver and bronze; blue, purple and scarlet yarn; fine linen; goat hair; ram skins dyed red; durable leather; acacia wood; olive oil for the light; spices for the anointing oil and incense; onyx and other gemstones for the ephod and breastpiece.',
+    'The purpose (25:8–9): make a sanctuary so that God may dwell among his people, following exactly the pattern shown to Moses.',
+    'The people gave so much that the craftsmen reported a surplus and Moses had to tell everyone to stop bringing gifts (36:5–7).',
+    'The silver came from a half-shekel given by each of the 603,550 men counted (38:25–26).'],
+ d:[['Gold','29 talents + 730 shekels (38:24)'],['Silver','100 talents + 1,775 shekels (38:25)'],['Bronze','70 talents + 2,400 shekels (38:29)']],
+ n:'A talent is often estimated at about 34 kg, which puts the gold at roughly a tonne. Ancient weights varied, so these are estimates.'},
+courtyard:{t:'The courtyard',r:'Exodus 27:9–19; 38:9–20',
+ p:['An enclosure 100 cubits long on the north and south sides and 50 cubits wide on the west and east.',
+    'Its walls are curtains of finely twisted linen, 5 cubits high.',
+    'The posts stand on bronze bases and carry silver hooks and bands; their tops were overlaid with silver (38:17).',
+    'All the tent pegs, for the tabernacle and the courtyard, are bronze; they are listed with their ropes (35:18; 39:40).'],
+ d:[['Length','100 cubits ≈ 46 m'],['Width','50 cubits ≈ 23 m'],['Wall height','5 cubits ≈ 2.3 m']],
+ n:'The text gives 20 posts per long side, 10 on the west, and 3 + 3 + 4 on the east: 60 in all. It doesn’t say how corner posts were counted, so here the posts simply stand every 5 cubits around the edge. The posts’ own material isn’t named, and how the ropes were laid out is a guess.'},
+gate:{t:'The courtyard gate',r:'Exodus 27:13–16; 38:14–18',
+ p:['The only way in, on the east side, facing the sunrise.',
+    'A curtain 20 cubits long of blue, purple and scarlet yarn and finely twisted linen, the work of an embroiderer, on 4 posts with 4 bases.',
+    'On each side of it hang plain linen curtains 15 cubits long on 3 posts.'],
+ d:[['Gate width','20 cubits ≈ 9 m'],['Height','5 cubits ≈ 2.3 m']],
+ n:'Exodus names the materials (blue, purple and scarlet yarn with finely twisted linen) but not the design, so the curtain shows only those threads woven together, with no invented pattern.'},
+altar:{t:'The altar of burnt offering',r:'Exodus 27:1–8; 38:1–7; 29:38–42',
+ p:['Made of acacia wood, square, 5 cubits by 5 cubits and 3 cubits high.',
+    'A horn at each of the four corners, made of one piece with the altar, and the whole altar overlaid with bronze.',
+    'All its utensils are bronze: pots for the ashes, shovels, sprinkling bowls, meat forks and firepans (set beside the altar here).',
+    'A bronze network grating sits under the ledge, halfway up the altar, with a bronze ring at each corner for carrying poles of acacia overlaid with bronze.',
+    'It is hollow, made of boards.',
+    'The daily offering (29:38–42): a year-old lamb each morning and another at twilight, with flour mixed with oil, and wine as a drink offering.'],
+ d:[['Size','5 × 5 cubits ≈ 2.3 × 2.3 m'],['Height','3 cubits ≈ 1.4 m']],
+ n:'Exodus doesn’t say how the priests reached the top. Since 20:26 forbids steps up to an altar, many reconstructions add an earth ramp; it’s left out here. The fire follows Leviticus 6:13, which says it must never go out.'},
+laver:{t:'The bronze basin',r:'Exodus 30:17–21; 38:8; 40:30–32',
+ p:['A bronze basin on a bronze stand, placed between the tent and the altar, filled with water.',
+    'Aaron and his sons must wash their hands and feet before entering the tent or approaching the altar; the text makes it a matter of life and death.',
+    'It was made from the bronze mirrors of the women who served at the entrance to the tent of meeting (38:8).'],
+ n:'No size or shape is given anywhere in Exodus, so this basin is a guess.'},
+frames:{t:'The frames and bases',r:'Exodus 26:15–30; 36:20–34; 38:27',
+ p:['Upright frames of acacia wood, each 10 cubits tall and 1½ cubits wide, with two projections that fit into bases.',
+    '20 frames on the south side, 20 on the north, 6 at the west end, plus 2 corner frames.',
+    'Each frame stands on two silver bases: 96 in all. With the 4 bases under the inner curtain’s posts, that makes 100, cast from 100 talents of silver, one talent per base (38:27).',
+    'Five crossbars hold each side together; the middle one runs from end to end.',
+    'Frames and crossbars are overlaid with gold, and gold rings on the frames hold the crossbars (26:29).'],
+ d:[['Each frame','10 × 1½ cubits ≈ 4.6 m × 69 cm'],['Tent (derived)','about 30 × 10 cubits ≈ 13.7 × 4.6 m']],
+ n:'Frame thickness isn’t given, and the exact width at the back is debated; the 30 × 10 layout here is the most common reconstruction. Turn tent covers off to see the frames.'},
+coverings:{t:'The four coverings',r:'Exodus 26:1–14; 36:8–19',
+ p:['Innermost: ten curtains of finely twisted linen with blue, purple and scarlet yarn and cherubim woven in. Each is 28 × 4 cubits, joined in two sets of five by 50 blue loops and 50 gold clasps so the tabernacle is one unit.',
+    'Over that: eleven curtains of goat hair, each 30 × 4 cubits, joined by 50 bronze clasps. The sixth is folded double at the front, and the extra half-curtain hangs down at the back (26:9, 12).',
+    'Then a covering of ram skins dyed red, and on top a covering of durable leather.',
+    'From inside, the cherubim-woven linen is your ceiling. The row of gold clasps joining the two sets of curtains marks where the inner curtain hangs (26:6, 33).'],
+ d:[['Linen curtain','28 × 4 cubits ≈ 12.8 × 1.8 m'],['Goat hair curtain','30 × 4 cubits ≈ 13.7 × 1.8 m']],
+ n:'Whether the roof was flat or ridged, and how far each layer hung down the sides, is debated. This model uses a flat roof with the leather reaching the ground. Exodus gives no colour for the goat hair or the durable leather, so dark hair and natural leather are assumed.'},
+entrance:{t:'The entrance screen',r:'Exodus 26:36–37; 36:37–38',
+ p:['A curtain for the tent’s east entrance, of blue, purple and scarlet yarn and finely twisted linen, the work of an embroiderer.',
+    'It hangs by gold hooks on five posts of acacia overlaid with gold.',
+    'The five bases are bronze.'],
+ n:'Notice the metals: bronze bases outside, silver bases inside, pure gold at the Ark. Many readers see the materials growing more precious as you approach God’s presence.'},
+holyplace:{t:'The Holy Place',r:'Exodus 26:33–35; 40:22–27',
+ p:['The outer room of the tent, about 20 cubits deep, where the priests served daily.',
+    'The table stands on the north side and the lampstand opposite it on the south.',
+    'The altar of incense stands in front of the inner curtain.',
+    'There are no windows; the lampstand is the only light.'],
+ d:[['Size (derived)','about 20 × 10 × 10 cubits']],
+ n:'The inner curtain hangs under the clasps joining the linen curtains (26:33). Twenty cubits from the entrance is the usual deduction.'},
+table:{t:'The table and the bread of the Presence',r:'Exodus 25:23–30; 37:10–16',
+ p:['Acacia wood, 2 cubits long, 1 wide and 1½ high, overlaid with pure gold, with a gold molding around it.',
+    'A rim a handbreadth wide goes around it, also with a gold molding.',
+    'Four gold rings at the corners where the legs are, close to the rim, hold the gold-covered poles for carrying it.',
+    'Its plates, dishes, pitchers and bowls for drink offerings are pure gold (one of each is shown).',
+    'The bread of the Presence is to be on it before God at all times.'],
+ d:[['Length','2 cubits ≈ 91 cm'],['Width','1 cubit ≈ 46 cm'],['Height','1½ cubits ≈ 69 cm']],
+ n:'Twelve loaves in two stacks, replaced every Sabbath, come from Leviticus 24:5–9. Whether the rim sat on the tabletop or was a frame between the legs is debated; here it’s a frame between the legs.'},
+lampstand:{t:'The lampstand',r:'Exodus 25:31–40; 27:20–21; 37:17–24',
+ p:['Hammered out of pure gold, base and shaft, with its cups, buds and blossoms all one piece with it.',
+    'Six branches, three on each side.',
+    'Each branch has three cups shaped like almond flowers with buds and blossoms; the central shaft has four.',
+    'A bud sits under each pair of branches where they leave the shaft (25:35).',
+    'Seven lamps set so they light the space in front of it, with wick trimmers and trays of pure gold (on the floor beside it here).',
+    'It used one talent of pure gold, about 34 kg.',
+    'It burned clear oil of pressed olives from evening till morning (27:20–21).',
+    'Moses is told to make it exactly like the pattern shown him on the mountain.'],
+ n:'No height or width is given. The curved branches follow the Arch of Titus carving and later tradition; some scholars argue for straight branches.'},
+incense:{t:'The altar of incense',r:'Exodus 30:1–10, 34–38; 37:25–29',
+ p:['Acacia wood, 1 cubit square and 2 cubits high, with horns of one piece with it.',
+    'Top, sides and horns overlaid with pure gold, with a gold molding around it.',
+    'Gold rings below the molding hold gold-covered poles.',
+    'It stands in front of the curtain that shields the Ark.',
+    'Aaron burns fragrant incense on it every morning when he tends the lamps and again at twilight. No other incense or offering may be put on it.',
+    'Once a year atonement is made on its horns.',
+    'The incense recipe (30:34–38): gum resin, onycha, galbanum and pure frankincense in equal parts, salted, holy, and never to be copied for personal use.'],
+ d:[['Top','1 × 1 cubit ≈ 46 cm square'],['Height','2 cubits ≈ 91 cm']]},
+veil:{t:'The inner curtain',r:'Exodus 26:31–35; 36:35–36',
+ p:['A curtain of blue, purple and scarlet yarn and finely twisted linen, with cherubim woven in by a skilled worker.',
+    'It hangs with gold hooks on four posts of acacia overlaid with gold, standing on four silver bases.',
+    'The Ark goes behind it. It separates the Holy Place from the Most Holy Place.'],
+ n:'Leviticus 16 describes the high priest passing through it once a year, on the Day of Atonement. The New Testament picks up this image in Hebrews 9–10 and in the torn temple curtain of Matthew 27:51.'},
+mostholy:{t:'The Most Holy Place',r:'Exodus 26:33–34',
+ p:['The inner room behind the curtain, holding only the Ark with its atonement cover.',
+    'By the frame measurements it is a perfect cube of 10 cubits each way.'],
+ d:[['Size (derived)','10 × 10 × 10 cubits ≈ 4.6 m cube']],
+ n:'Exodus mentions no light in this room; a faint light is added only so you can see. Exodus 40:34–35 describes the cloud and the glory of the Lord filling the tabernacle when it was finished.'},
+ark:{t:'The Ark of the covenant',r:'Exodus 25:10–16, 21–22; 37:1–5',
+ p:['A chest of acacia wood 2½ cubits long, 1½ wide and 1½ high.',
+    'Overlaid with pure gold inside and out, with a gold molding around it.',
+    'Four gold rings on its four feet, two on each side, hold poles of acacia overlaid with gold.',
+    'The poles stay in the rings and are never removed.',
+    'Inside go the tablets of the covenant law that God would give Moses.'],
+ d:[['Length','2½ cubits ≈ 1.1 m'],['Width','1½ cubits ≈ 69 cm'],['Height','1½ cubits ≈ 69 cm']],
+ n:'Whether the rings and poles were on the long sides or the short ends is debated. The poles here point toward the curtain, following 1 Kings 8:8, where their ends could be seen from the Holy Place.'},
+cover:{t:'The atonement cover and cherubim',r:'Exodus 25:17–22; 37:6–9',
+ p:['A cover of pure gold, 2½ cubits by 1½ cubits, on top of the Ark.',
+    'Two cherubim of hammered gold, one at each end, made of one piece with the cover.',
+    'Their wings spread upward, overshadowing the cover. They face each other, looking toward the cover.',
+    'God promises to meet with Moses above the cover, between the cherubim, and give him his commands for Israel (25:22).'],
+ d:[['Cover','2½ × 1½ cubits ≈ 1.1 m × 69 cm']],
+ n:'Exodus doesn’t describe the cherubim’s faces, bodies or height, so these figures are deliberately simple.'},
+priest:{t:'The high priest’s garments',r:'Exodus 28:1–5',
+ p:['Aaron and his sons are set apart to serve as priests.',
+    'Sacred garments are made for Aaron to give him dignity and honour: a breastpiece, an ephod, a robe, a woven tunic, a turban and a sash.',
+    'Skilled workers make them from gold, blue, purple and scarlet yarn, and fine linen.',
+    'Tap each part of Aaron to read about it.'],garment:true},
+ephod:{t:'The ephod and onyx stones',r:'Exodus 28:6–14; 39:2–7',
+ p:['Made of gold, blue, purple and scarlet yarn and finely twisted linen, the work of skilled hands.',
+    'Two shoulder pieces are attached at its corners, and a woven waistband of the same materials is one piece with it.',
+    'Two onyx stones on the shoulders are engraved like a seal with the names of Israel’s sons, six on each stone in order of birth, set in gold filigree.',
+    'Aaron carries the names on his shoulders as a memorial before the Lord.',
+    'Gold was hammered into thin sheets and cut into threads to weave into the yarn (39:3).'],garment:true},
+breastpiece:{t:'The breastpiece',r:'Exodus 28:15–30; 39:8–21',
+ p:['Called the breastpiece for making decisions. Same materials as the ephod.',
+    'Square, a span long and a span wide (about 23 cm), folded double.',
+    'Four rows of three stones in gold filigree. In the NIV: carnelian, chrysolite, beryl; turquoise, lapis lazuli, emerald; jacinth, agate, amethyst; topaz, onyx, jasper.',
+    'Each stone is engraved like a seal with the name of one of the twelve tribes.',
+    'Braided gold chains and gold rings, with a blue cord, tie it to the ephod so it won’t swing out.',
+    'The Urim and Thummim go in it, so Aaron carries them, and Israel’s names, over his heart before the Lord.'],garment:true,
+ n:'The identity of several stones is uncertain, and translations differ (the KJV starts with sardius, topaz, carbuncle). The colours are guesses, and Exodus doesn’t say which tribe went on which stone.'},
+robe:{t:'The robe of the ephod',r:'Exodus 28:31–35; 39:22–26',
+ p:['Made entirely of blue cloth, worn under the ephod.',
+    'A head opening in the centre with a woven edge like a collar so it won’t tear.',
+    'Around the hem: pomegranates of blue, purple and scarlet yarn and finely twisted linen, alternating with bells of pure gold (39:24–26).',
+    'The bells are heard whenever Aaron enters or leaves the Holy Place, so that he will not die.',
+    'Walk around with robe bells on to hear them.'],garment:true,
+ n:'The number of bells and pomegranates isn’t given.'},
+plate:{t:'The gold plate on the turban',r:'Exodus 28:36–38; 39:30–31',
+ p:['A plate of pure gold engraved like a seal with the words “HOLY TO THE LORD”.',
+    'It is tied with a blue cord to the front of the turban, on Aaron’s forehead.',
+    'It means Aaron bears the guilt connected with the sacred gifts Israel brings, so that they are acceptable to the Lord.'],garment:true,
+ n:'The original inscription was in Hebrew; it’s shown here in English.'},
+tunic:{t:'The tunic, turban and sash',r:'Exodus 28:39; 39:27–29',
+ p:['A tunic woven of fine linen.','A turban of fine linen.','A sash of finely twisted linen and blue, purple and scarlet yarn, the work of an embroiderer (39:29).'],garment:true,
+ n:'The sash is worn under the robe and ephod, so it isn’t visible on the model.'},
+sons:{t:'Garments for Aaron’s sons',r:'Exodus 28:40–43; 29',
+ p:['Tunics, sashes and caps for Aaron’s sons, also for dignity and honour.',
+    'Linen undergarments reaching from the waist to the thigh for all the priests.',
+    'Chapter 29 describes their ordination: washing, dressing, anointing, and a week of sacrifices.'],garment:true}
+};
+
+const PLACES=[
+ {sec:'Start here',items:[['about'],['offering'],['courtyard','aerial']]},
+ {sec:'The courtyard',items:[['gate',[58,0,50,0]],['altar',[29,4,22,0]],['laver',[10,3,5,0]]]},
+ {sec:'The tent',items:[['frames',[-30,-15,-30,-5],'off'],['coverings',[-6,-13,-30,0],'on'],['entrance',[-8,0,-15,0]]]},
+ {sec:'The Holy Place',items:[['holyplace',[-17,0,-30,0]],['table',[-24,-0.4,-27,-3.2]],['lampstand',[-24,0.4,-27,3.2]],['incense',[-30,0.8,-33.2,0]],['veil',[-31,-1.5,-35,0]]]},
+ {sec:'The Most Holy Place',items:[['mostholy',[-36.2,0,-40,0]],['ark',[-36.2,0.5,-40,0]],['cover',[-36.2,-0.5,-40,0]]]},
+ {sec:'Aaron’s garments',items:[['priest'],['ephod'],['breastpiece'],['robe'],['plate'],['tunic'],['sons']]}
+];
+
+/* Renderer */
+let renderer;
+try{renderer=new THREE.WebGLRenderer({antialias:true});}
+catch(e){$('#loading').textContent='This walkthrough needs WebGL, which isn’t available in this browser.';return;}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=0.95;
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+$('#stage').appendChild(renderer.domElement);
+const cv=renderer.domElement;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,0.1,900);
+const col=h=>new THREE.Color(h).convertSRGBToLinear();
+
+function mk(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return [c,c.getContext('2d')];}
+const maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+function T(c,rx,ry){const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx||1,ry||1);t.anisotropy=maxAniso;return t;}
+function rep(t,rx,ry){const n=t.clone();n.needsUpdate=true;n.repeat.set(rx,ry);return n;}
+function speckle(x,w,h,n,cols,a){for(let i=0;i<n;i++){x.fillStyle=cols[i%cols.length];x.globalAlpha=a*Math.random();x.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*2,1+Math.random()*2);}x.globalAlpha=1;}
+
+{const [c,x]=mk(4,256);const g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,'#7da3cf');g.addColorStop(.55,'#c8d5de');g.addColorStop(1,'#eadbbd');x.fillStyle=g;x.fillRect(0,0,4,256);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;scene.background=t;}
+scene.fog=new THREE.Fog(0xe4d6b9,240,700);
+
+{
+  const pm=new THREE.PMREMGenerator(renderer);
+  const es=new THREE.Scene();
+  const sg=new THREE.SphereGeometry(10,32,16);
+  const top=new THREE.Color('#7fa2cc'),mid=new THREE.Color('#f4e7cc'),bot=new THREE.Color('#8f744c');
+  const pos=sg.attributes.position,cols=[];
+  for(let i=0;i<pos.count;i++){const y=pos.getY(i)/10;const c=y>0?mid.clone().lerp(top,y):mid.clone().lerp(bot,Math.min(1,-y*1.5));cols.push(c.r,c.g,c.b);}
+  sg.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
+  es.add(new THREE.Mesh(sg,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide})));
+  const s=new THREE.Mesh(new THREE.SphereGeometry(1.3,12,8),new THREE.MeshBasicMaterial({color:0xffffff}));s.position.set(4,7,5);es.add(s);
+  scene.environment=pm.fromScene(es,0.03).texture;
+  pm.dispose();
+}
+
+scene.add(new THREE.HemisphereLight(0xdfe8f5,0xb39a70,0.45));
+const sunL=new THREE.DirectionalLight(0xfff0d8,1.7);
+sunL.position.set(45,85,55);
+sunL.castShadow=true;
+sunL.shadow.mapSize.set(2048,2048);
+Object.assign(sunL.shadow.camera,{left:-80,right:80,top:80,bottom:-80,near:10,far:260});
+sunL.shadow.camera.updateProjectionMatrix();
+sunL.shadow.bias=-0.0006;sunL.shadow.normalBias=0.04;
+scene.add(sunL,sunL.target);
+
+/* Textures */
+const TX={};
+{const [c,x]=mk(256,256);x.fillStyle='#d5bf94';x.fillRect(0,0,256,256);speckle(x,256,256,7000,['#b59c6c','#eadab3','#a4885a','#c8ae7e'],.7);TX.sand=T(c,110,90);}
+{const [c,x]=mk(128,128);x.fillStyle='#eee7d7';x.fillRect(0,0,128,128);for(let i=0;i<128;i+=2){x.fillStyle='rgba(120,100,70,.06)';x.fillRect(0,i,128,1);x.fillRect(i,0,1,128);}speckle(x,128,128,300,['#d9cfb9','#fbf7ee'],.5);TX.linen=T(c);}
+const TC=['#2b3f8e','#6a2458','#b3202b'];
+function drawCherub(x,cx,cy,s,cl){
+  x.save();x.translate(cx,cy);x.scale(s,s);x.fillStyle=cl;
+  for(const d of[-1,1]){x.beginPath();x.moveTo(0,-4);x.quadraticCurveTo(d*30,-46,d*64,-60);x.quadraticCurveTo(d*52,-32,d*60,-24);x.quadraticCurveTo(d*40,-20,d*50,-9);x.quadraticCurveTo(d*26,-6,0,12);x.closePath();x.fill();}
+  x.beginPath();x.moveTo(-10,0);x.lineTo(10,0);x.lineTo(17,48);x.lineTo(-17,48);x.closePath();x.fill();
+  x.beginPath();x.arc(0,-15,9,0,PI*2);x.fill();
+  x.restore();
+}
+function weave(cherub){
+  const [c,x]=mk(512,512);
+  x.fillStyle='#efe9da';x.fillRect(0,0,512,512);
+  for(let i=0;i<512;i+=2){x.fillStyle='rgba(120,100,70,.05)';x.fillRect(0,i,512,1);}
+  x.globalAlpha=cherub?.3:.75;
+  for(let i=0;i<512;i+=4){x.fillStyle=TC[(i/4)%3];x.fillRect(i+1,0,1.5,512);}
+  x.globalAlpha=1;
+  if(cherub){for(let r=0;r<3;r++)for(let k=0;k<3;k++)drawCherub(x,85+k*171,135+r*140,1.05,TC[(r+k)%3]);}
+  return c;
+}
+TX.screen=T(weave(false));TX.cherub=T(weave(true));
+{const [c,x]=mk(256,256);x.fillStyle='#5a4432';x.fillRect(0,0,256,256);speckle(x,256,256,4000,['#3f2f22','#76593f'],.6);x.strokeStyle='rgba(30,20,12,.25)';for(let i=0;i<14;i++){x.beginPath();x.moveTo(Math.random()*256,Math.random()*256);x.quadraticCurveTo(Math.random()*256,Math.random()*256,Math.random()*256,Math.random()*256);x.stroke();}TX.leather=T(c,8,3);}
+{const [c,x]=mk(128,128);x.fillStyle='#2e2926';x.fillRect(0,0,128,128);for(let i=0;i<500;i++){x.strokeStyle='rgba(200,190,180,'+(Math.random()*.12).toFixed(3)+')';const px=Math.random()*128;x.beginPath();x.moveTo(px,Math.random()*128);x.lineTo(px+Math.random()*2-1,Math.random()*128);x.stroke();}TX.goat=T(c,20,2);}
+{const [c,x]=mk(128,128);x.fillStyle='#7b2a22';x.fillRect(0,0,128,128);speckle(x,128,128,1500,['#5d1d17','#94382d'],.6);TX.red=T(c,10,4);}
+{const [c,x]=mk(128,128);x.strokeStyle='#8f5c2c';x.lineWidth=4;for(let i=0;i<=128;i+=16){x.beginPath();x.moveTo(i,0);x.lineTo(i,128);x.stroke();x.beginPath();x.moveTo(0,i);x.lineTo(128,i);x.stroke();}TX.grate=T(c,4,2);}
+{const [c,x]=mk(128,128);x.fillStyle='#c9a24b';x.fillRect(0,0,128,128);const seq=['#2b3f8e','#6a2458','#b3202b','#efe9da'];for(let i=0;i<128;i+=4){x.fillStyle=seq[(i/4)%seq.length];x.fillRect(i+1,0,1.4,128);}for(let j=0;j<128;j+=3){x.fillStyle='rgba(0,0,0,.08)';x.fillRect(0,j,128,1);}TX.ephod=T(c,3,2);}
+{const [c,x]=mk(512,128);const g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,'#f2d27a');g.addColorStop(.5,'#c89b34');g.addColorStop(1,'#a8801f');x.fillStyle=g;x.fillRect(0,0,512,128);x.fillStyle='#5a3f0c';x.font='bold 44px Georgia, serif';x.textAlign='center';x.textBaseline='middle';x.fillText('HOLY TO THE LORD',256,68);TX.plate=T(c);}
+{const [c,x]=mk(64,64);const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.45)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);TX.glow=new THREE.CanvasTexture(c);}
+
+/* Materials */
+const std=o=>new THREE.MeshStandardMaterial(o);
+const M={
+  gold:std({color:col('#dcb54e'),metalness:1,roughness:.26}),
+  silver:std({color:col('#d9dce0'),metalness:1,roughness:.3}),
+  bronze:std({color:col('#a56d37'),metalness:1,roughness:.4}),
+  wood:std({color:col('#7a5231'),roughness:.8}),
+  sand:std({map:TX.sand,roughness:1}),
+  leather:std({map:TX.leather,roughness:.9}),
+  goat:std({map:TX.goat,roughness:1}),
+  red:std({map:TX.red,roughness:.9}),
+  white:std({color:col('#f1ede3'),roughness:.9}),
+  robe:std({color:col('#2b3f8e'),roughness:.8,side:THREE.DoubleSide}),
+  ephod:std({map:TX.ephod,roughness:.6,metalness:.15,side:THREE.DoubleSide}),
+  skin:std({color:col('#b88760'),roughness:.8}),
+  hair:std({color:col('#3a2a1e'),roughness:.9}),
+  bread:std({color:col('#c99658'),roughness:.9}),
+  water:std({color:col('#5d8ca3'),metalness:.2,roughness:.05,transparent:true,opacity:.85}),
+  mountain:std({color:col('#a8896a'),roughness:1,flatShading:true}),
+  blue:std({color:col('#2b3f8e'),roughness:.7})
+};
+const ROPE=new THREE.LineBasicMaterial({color:0xb7a27a});
+M.goldDS=M.gold.clone();M.goldDS.side=THREE.DoubleSide;
+
+function mesh(geo,mat,x,y,z,parent){const m=new THREE.Mesh(geo,mat);m.position.set(x||0,y||0,z||0);m.castShadow=true;m.receiveShadow=true;if(parent)parent.add(m);return m;}
+function group(info,x,y,z,parent){const g=new THREE.Group();g.position.set(x||0,y||0,z||0);if(info)g.userData.info=info;(parent||scene).add(g);return g;}
+function rod(a,b,r,mat,parent){const d=new THREE.Vector3().subVectors(b,a);const m=mesh(new THREE.CylinderGeometry(r,r,d.length(),6),mat,0,0,0,parent);m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());return m;}
+function sprite(color,scale,opacity,parent,additive){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:TX.glow,color:color,transparent:true,opacity:opacity,depthWrite:false,blending:additive?THREE.AdditiveBlending:THREE.NormalBlending}));s.scale.set(scale,scale,1);s.userData.noHit=true;if(parent)parent.add(s);return s;}
+
+const boxes=[],screens=[],camBlockers=[],flames=[],smoke=[];
+
+/* Ground and surroundings */
+const ground=mesh(new THREE.PlaneGeometry(700,560),M.sand,0,0,0,scene);
+ground.rotation.x=-PI/2;ground.castShadow=false;ground.userData.ground=true;
+{
+  const spec=[[-.2,380,120,95],[.35,410,90,70],[-.6,360,80,55],[.8,430,110,80],[1.6,390,70,60],[2.3,420,100,75],[3.0,370,85,62],[3.7,400,130,105],[4.4,380,75,50],[5.2,410,95,70],[5.8,395,85,58]];
+  spec.forEach(([a,d,r,h])=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,7),M.mountain);h*=.45;m.scale.y=.45;m.position.set(Math.cos(a)*d*1.1-40,h/2-3,Math.sin(a)*d*1.1);m.rotation.y=a*3;m.userData.noHit=true;scene.add(m);});
+}
+
+/* Courtyard (east = +x, north = -z) */
+{
+  const g=group('courtyard');
+  const pts=[];
+  for(let x=-50;x<=50;x+=5){pts.push([x,-25],[x,25]);}
+  for(let z=-20;z<=20;z+=5){pts.push([-50,z],[50,z]);}
+  const posts=new THREE.InstancedMesh(new THREE.CylinderGeometry(.2,.22,5.2,10),M.wood,pts.length);
+  const caps=new THREE.InstancedMesh(new THREE.CylinderGeometry(.27,.27,.3,10),M.silver,pts.length);
+  const bases=new THREE.InstancedMesh(new THREE.BoxGeometry(.7,.5,.7),M.bronze,pts.length);
+  const m4=new THREE.Matrix4();
+  pts.forEach(([x,z],i)=>{m4.makeTranslation(x,2.6,z);posts.setMatrixAt(i,m4);m4.makeTranslation(x,5.15,z);caps.setMatrixAt(i,m4);m4.makeTranslation(x,.25,z);bases.setMatrixAt(i,m4);});
+  [posts,caps,bases].forEach(m=>{m.instanceMatrix.needsUpdate=true;m.castShadow=true;m.receiveShadow=true;g.add(m);});
+  const pegs=new THREE.InstancedMesh(new THREE.ConeGeometry(.08,.35,6),M.bronze,pts.length),rp=[];
+  pts.forEach(([x,z],i)=>{let nx=x===50?1:x===-50?-1:0,nz=z===25?1:z===-25?-1:0;const l=Math.hypot(nx,nz)||1;nx/=l;nz/=l;const px=x+nx*3,pz=z+nz*3;m4.makeRotationX(PI);m4.setPosition(px,.12,pz);pegs.setMatrixAt(i,m4);rp.push(x,5,z,px,.2,pz);});
+  pegs.instanceMatrix.needsUpdate=true;g.add(pegs);
+  {const rl=new THREE.BufferGeometry();rl.setAttribute('position',new THREE.Float32BufferAttribute(rp,3));const ln=new THREE.LineSegments(rl,ROPE);ln.userData.noHit=true;g.add(ln);}
+  const lin=len=>std({map:rep(TX.linen,len/1.5,5/1.5),roughness:.95,side:THREE.DoubleSide});
+  mesh(new THREE.PlaneGeometry(100,4.9),lin(100),0,2.55,-25,g);
+  mesh(new THREE.PlaneGeometry(100,4.9),lin(100),0,2.55,25,g);
+  mesh(new THREE.PlaneGeometry(50,4.9),lin(50),-50,2.55,0,g).rotation.y=PI/2;
+  mesh(new THREE.PlaneGeometry(15,4.9),lin(15),50,2.55,-17.5,g).rotation.y=PI/2;
+  mesh(new THREE.PlaneGeometry(15,4.9),lin(15),50,2.55,17.5,g).rotation.y=PI/2;
+  const gm=std({map:rep(TX.screen,4,1),roughness:.9,side:THREE.DoubleSide,transparent:true});
+  const gate=mesh(new THREE.PlaneGeometry(20,4.9),gm,50,2.55,0,scene);gate.rotation.y=PI/2;
+  const s={mesh:gate,at:50,min:-10,max:10};gate.userData.info='gate';gate.userData.screen=s;screens.push(s);
+  boxes.push([-50.3,50.3,-25.3,-24.7],[-50.3,50.3,24.7,25.3],[-50.3,-49.7,-25.3,25.3],[49.7,50.3,-25.3,-10],[49.7,50.3,10,25.3]);
+}
+
+/* Tabernacle frames, bases, bars */
+const tent=group(null);
+{
+  const q=new THREE.Quaternion(),p=new THREE.Vector3(),s=new THREE.Vector3(),m4=new THREE.Matrix4();
+  const frames=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),M.gold,48);
+  const bases=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),M.silver,96);
+  frames.userData.info='frames';bases.userData.info='frames';
+  let fi=0,bi=0;
+  const setI=(im,i,x,y,z,sx,sy,sz)=>{p.set(x,y,z);s.set(sx,sy,sz);m4.compose(p,q,s);im.setMatrixAt(i,m4);};
+  for(let k=0;k<20;k++){const x=-45+.75+k*1.5;for(const z of[-5.25,5.25]){setI(frames,fi++,x,5,z,1.46,10,.5);setI(bases,bi++,x-.37,.35,z,.66,.7,.8);setI(bases,bi++,x+.37,.35,z,.66,.7,.8);}}
+  for(let k=0;k<6;k++){const z=-4.5+.75+k*1.5;setI(frames,fi++,-45.25,5,z,.5,10,1.46);setI(bases,bi++,-45.25,.35,z-.37,.8,.7,.66);setI(bases,bi++,-45.25,.35,z+.37,.8,.7,.66);}
+  for(const z of[-5,5]){setI(frames,fi++,-45.25,5,z,.5,10,.98);setI(bases,bi++,-45.25,.35,z-.25,.8,.7,.46);setI(bases,bi++,-45.25,.35,z+.25,.8,.7,.46);}
+  [frames,bases].forEach(m=>{m.instanceMatrix.needsUpdate=true;m.castShadow=true;m.receiveShadow=true;tent.add(m);});
+  camBlockers.push(frames);
+  const bar=(x1,z1,x2,z2,y)=>{rod(new THREE.Vector3(x1,y,z1),new THREE.Vector3(x2,y,z2),.11,M.gold,tent).userData.info='frames';};
+  for(const z of[-5.62,5.62]){bar(-45,z,-30.2,z,2.2);bar(-29.8,z,-15,z,2.2);bar(-45,z,-15,z,5);bar(-45,z,-30.2,z,7.8);bar(-29.8,z,-15,z,7.8);}
+  const wx=-45.62;bar(wx,-5.5,wx,-.2,2.2);bar(wx,.2,wx,5.5,2.2);bar(wx,-5.5,wx,5.5,5);bar(wx,-5.5,wx,-.2,7.8);bar(wx,.2,wx,5.5,7.8);
+  const rg=new THREE.InstancedMesh(new THREE.TorusGeometry(.15,.035,6,12),M.gold,144);let ri=0;
+  const qy=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),PI/2),one=new THREE.Vector3(1,1,1);
+  for(let k=0;k<20;k++){const x=-45+.75+k*1.5;for(const z of[-5.62,5.62])for(const y of[2.2,5,7.8]){m4.compose(p.set(x,y,z),qy,one);rg.setMatrixAt(ri++,m4);}}
+  for(const z of[-3.75,-2.25,-.75,.75,2.25,3.75,-5,5])for(const y of[2.2,5,7.8]){m4.compose(p.set(-45.62,y,z),q,one);rg.setMatrixAt(ri++,m4);}
+  rg.instanceMatrix.needsUpdate=true;rg.userData.info='frames';tent.add(rg);
+  boxes.push([-46.1,-15,-6.1,-4.95],[-46.1,-15,4.95,6.1],[-46.1,-44.95,-6.1,6.1]);
+}
+const covers=group('coverings',0,0,0,tent);
+{
+  const ceil=mesh(new THREE.PlaneGeometry(30.4,10.6),std({map:rep(TX.cherub,6,2),roughness:.9,side:THREE.DoubleSide}),-30,9.99,0,covers);
+  ceil.rotation.x=PI/2;ceil.castShadow=false;
+  mesh(new THREE.BoxGeometry(31,.12,11.4),M.goat,-30.1,10.08,0,covers);
+  mesh(new THREE.BoxGeometry(31.2,.12,11.6),M.red,-30.2,10.2,0,covers);
+  mesh(new THREE.BoxGeometry(31.4,.16,11.8),M.leather,-30.25,10.34,0,covers);
+  const dn=mesh(new THREE.BoxGeometry(31.4,10.3,.1),M.leather,-30.25,5.15,-5.95,covers);
+  const ds=mesh(new THREE.BoxGeometry(31.4,10.3,.1),M.leather,-30.25,5.15,5.95,covers);
+  const dw=mesh(new THREE.BoxGeometry(.1,10.3,11.8),M.leather,-45.95,5.15,0,covers);
+  mesh(new THREE.BoxGeometry(.14,1.1,11.4),M.goat,-14.82,9.45,0,covers);
+  for(let z=-5.1;z<=5.11;z+=.56){mesh(new THREE.SphereGeometry(.07,8,6),M.gold,-35,9.93,z,covers).castShadow=false;const lp=mesh(new THREE.TorusGeometry(.07,.02,6,10),M.blue,-35,9.96,z,covers);lp.rotation.x=PI/2;lp.scale.set(1.8,1,1);lp.castShadow=false;}
+  {const rp=[],pg=[];for(let x=-45;x<=-15;x+=5)for(const sz of[-1,1]){rp.push(x,10.3,sz*5.95,x,.15,sz*9);pg.push([x,sz*9]);}for(const z of[-5,0,5]){rp.push(-45.95,10.3,z,-49,.15,z);pg.push([-49,z]);}
+   const rl=new THREE.BufferGeometry();rl.setAttribute('position',new THREE.Float32BufferAttribute(rp,3));const ln=new THREE.LineSegments(rl,ROPE);ln.userData.noHit=true;covers.add(ln);
+   pg.forEach(([x,z])=>{mesh(new THREE.ConeGeometry(.08,.35,6),M.bronze,x,.12,z,covers).rotation.x=PI;});}
+  camBlockers.push(ceil,dn,ds,dw);
+}
+{
+  const g=group('entrance',0,0,0,tent);
+  for(const z of[-4.75,-2.4,0,2.4,4.75]){
+    mesh(new THREE.CylinderGeometry(.22,.22,10,12),M.gold,-15.25,5,z,g);
+    mesh(new THREE.BoxGeometry(.6,.6,.6),M.bronze,-15.25,.3,z,g);
+    boxes.push([-15.5,-15,z-.25,z+.25]);
+  }
+  const sm=std({map:rep(TX.screen,2,2),roughness:.9,side:THREE.DoubleSide,transparent:true});
+  const scr=mesh(new THREE.PlaneGeometry(10,10),sm,-15.05,5,0,scene);scr.rotation.y=PI/2;
+  const s={mesh:scr,at:-15.05,min:-5,max:5};scr.userData.info='entrance';scr.userData.screen=s;screens.push(s);
+}
+{
+  const g=group('veil',0,0,0,tent);
+  for(const z of[-3.75,-1.25,1.25,3.75]){
+    mesh(new THREE.CylinderGeometry(.2,.2,10,12),M.gold,-35.25,5,z,g);
+    mesh(new THREE.BoxGeometry(.66,.7,.8),M.silver,-35.25,.35,z,g);
+    boxes.push([-35.5,-35,z-.25,z+.25]);
+  }
+  const vm=std({map:rep(TX.cherub,2,2),roughness:.9,side:THREE.DoubleSide,transparent:true});
+  const v=mesh(new THREE.PlaneGeometry(10,10),vm,-35.05,5,0,scene);v.rotation.y=PI/2;
+  const s={mesh:v,at:-35.05,min:-5,max:5};v.userData.info='veil';v.userData.screen=s;screens.push(s);
+}
+
+/* Furniture */
+function makeCherub(){
+  const c=new THREE.Group();
+  mesh(new THREE.CylinderGeometry(.12,.2,.56,12),M.gold,0,.28,0,c);
+  mesh(new THREE.SphereGeometry(.13,14,10),M.gold,.05,.66,0,c);
+  const s=new THREE.Shape();
+  s.moveTo(0,0);s.quadraticCurveTo(.35,.25,.95,.75);s.quadraticCurveTo(.86,.56,.9,.46);s.quadraticCurveTo(.72,.36,.76,.26);s.quadraticCurveTo(.52,.13,.52,.03);s.quadraticCurveTo(.25,-.05,0,-.12);
+  const wg=new THREE.ShapeGeometry(s,10);
+  for(const sd of[-1,1]){const w=new THREE.Mesh(wg,M.goldDS);w.position.set(-.06,.48,sd*.13);w.rotation.y=-sd*.3;w.castShadow=true;c.add(w);}
+  return c;
+}
+const ARK_Y=0.18+1.5;
+{
+  const g=group('ark',-40,0,0);
+  const L=2.5,W=1.5,H=1.5,f=.18;
+  for(const sx of[-1,1])for(const sz of[-1,1])mesh(new THREE.BoxGeometry(.2,f,.2),M.gold,sx*(L/2-.12),f/2,sz*(W/2-.12),g);
+  mesh(new THREE.BoxGeometry(L,H,W),M.gold,0,f+H/2,0,g);
+  mesh(new THREE.BoxGeometry(L+.08,.1,W+.08),M.gold,0,f+H-.08,0,g);
+  for(const sx of[-1,1])for(const sz of[-1,1]){const r=mesh(new THREE.TorusGeometry(.1,.025,8,16),M.gold,sx*(L/2-.35),f+.3,sz*(W/2+.1),g);r.rotation.y=PI/2;}
+  for(const sz of[-1,1]){const p=mesh(new THREE.CylinderGeometry(.06,.06,6,10),M.gold,0,f+.3,sz*(W/2+.1),g);p.rotation.z=PI/2;}
+  const cg=group('cover',0,ARK_Y,0,g);
+  mesh(new THREE.BoxGeometry(L,.1,W),M.gold,0,.05,0,cg);
+  const c1=makeCherub();c1.position.set(-(L/2-.32),.1,0);cg.add(c1);
+  const c2=makeCherub();c2.position.set(L/2-.32,.1,0);c2.rotation.y=PI;cg.add(c2);
+  const pl=new THREE.PointLight(0xfff0d8,.55,9);pl.position.set(0,ARK_Y+1.2,0);g.add(pl);
+  boxes.push([-43,-37,-1.05,1.05]);
+}
+{
+  const g=group('table',-27,0,-3.2);
+  const L=2,W=1,H=1.5;
+  mesh(new THREE.BoxGeometry(L,.08,W),M.gold,0,H-.04,0,g);
+  for(const sz of[-1,1])mesh(new THREE.BoxGeometry(L+.04,.06,.04),M.gold,0,H+.03,sz*(W/2),g);
+  for(const sx of[-1,1])mesh(new THREE.BoxGeometry(.04,.06,W+.04),M.gold,sx*(L/2),H+.03,0,g);
+  for(const sx of[-1,1])for(const sz of[-1,1])mesh(new THREE.BoxGeometry(.1,H-.08,.1),M.gold,sx*(L/2-.06),(H-.08)/2,sz*(W/2-.06),g);
+  for(const sz of[-1,1])mesh(new THREE.BoxGeometry(L-.1,.17,.04),M.gold,0,H-.35,sz*(W/2-.06),g);
+  for(const sx of[-1,1])mesh(new THREE.BoxGeometry(.04,.17,W-.1),M.gold,sx*(L/2-.06),H-.35,0,g);
+  for(const sx of[-1,1])for(const sz of[-1,1]){const r=mesh(new THREE.TorusGeometry(.07,.018,8,14),M.gold,sx*(L/2-.06),H-.3,sz*(W/2+.03),g);r.rotation.y=PI/2;}
+  for(const sz of[-1,1]){const p=mesh(new THREE.CylinderGeometry(.04,.04,3.8,8),M.gold,0,H-.3,sz*(W/2+.03),g);p.rotation.z=PI/2;}
+  const lg=new THREE.CylinderGeometry(.2,.2,.07,18);
+  for(const sx of[-1,1])for(let k=0;k<6;k++){const b=mesh(lg,M.bread,sx*.5,H+.04+k*.075,.05,g);b.scale.z=.8;}
+  mesh(new THREE.CylinderGeometry(.11,.07,.05,14),M.gold,0,H+.03,.3,g);
+  mesh(new THREE.CylinderGeometry(.05,.07,.18,12),M.gold,0,H+.09,-.28,g);
+  mesh(new THREE.CylinderGeometry(.13,.12,.02,18),M.gold,0,H+.01,.02,g);
+  mesh(new THREE.CylinderGeometry(.09,.06,.04,14),M.gold,0,H+.04,.02,g);
+  boxes.push([-29,-25,-3.85,-2.55]);
+}
+const lampLight=new THREE.PointLight(0xffb15a,1.25,26,1.5);
+{
+  const g=group('lampstand',-27,0,3.2);
+  const H=3.0;
+  mesh(new THREE.CylinderGeometry(.34,.48,.22,24),M.gold,0,.11,0,g);
+  mesh(new THREE.CylinderGeometry(.22,.34,.16,20),M.gold,0,.3,0,g);
+  mesh(new THREE.CylinderGeometry(.065,.075,H-.38,12),M.gold,0,.38+(H-.38)/2,0,g);
+  const cupG=new THREE.CylinderGeometry(.075,.03,.11,12),budG=new THREE.SphereGeometry(.05,10,8),blosG=new THREE.CylinderGeometry(.095,.075,.025,12),lampG=new THREE.CylinderGeometry(.1,.05,.07,14);
+  const cup=(x,y,rz)=>{const c=mesh(cupG,M.gold,x,y,0,g);c.rotation.z=rz||0;mesh(budG,M.gold,x,y-.08,0,g);const b2=mesh(blosG,M.gold,x,y+.065,0,g);b2.rotation.z=rz||0;};
+  const lampAt=(x,y)=>{mesh(lampG,M.gold,x,y+.04,0,g);const f=sprite(0xffa640,.32,1,g,true);f.position.set(x,y+.2,0);flames.push(f);const core=sprite(0xfff1c0,.12,1,g,true);core.position.set(x,y+.16,0);};
+  [.4,.8,1.2].forEach(r=>{
+    const a=mesh(new THREE.TorusGeometry(r,.045,8,40,PI),M.gold,0,H,0,g);a.rotation.z=PI;
+    for(const sd of[-1,1])for(const ph of[.18,.52,.9])cup(sd*r*Math.cos(ph),H-r*Math.sin(ph),sd*(PI/2-ph)*.6);
+    lampAt(r,H);lampAt(-r,H);
+  });
+  [2.86,2.42,2.02,1.3].forEach(y=>cup(0,y,0));
+  [.4,.8,1.2].forEach(r=>mesh(new THREE.SphereGeometry(.08,12,10),M.gold,0,H-r,0,g));
+  lampAt(0,H);
+  for(const sx of[-1,1]){mesh(new THREE.CylinderGeometry(.14,.12,.03,16),M.gold,sx*.75,.02,-.35,g);rod(new THREE.Vector3(sx*.75-.1,.05,-.4),new THREE.Vector3(sx*.75+.1,.05,-.3),.01,M.gold,g);rod(new THREE.Vector3(sx*.75-.1,.05,-.3),new THREE.Vector3(sx*.75+.1,.05,-.4),.01,M.gold,g);}
+  lampLight.position.set(0,H+.4,-.4);g.add(lampLight);
+  boxes.push([-28.35,-25.65,2.75,3.65]);
+}
+{
+  const g=group('incense',-33.2,0,0);
+  mesh(new THREE.BoxGeometry(1,2,1),M.gold,0,1,0,g);
+  for(const sz of[-1,1])mesh(new THREE.BoxGeometry(1.06,.07,.05),M.gold,0,1.98,sz*.52,g);
+  for(const sx of[-1,1])mesh(new THREE.BoxGeometry(.05,.07,1.06),M.gold,sx*.52,1.98,0,g);
+  for(const sx of[-1,1])for(const sz of[-1,1])mesh(new THREE.ConeGeometry(.08,.22,8),M.gold,sx*.42,2.1,sz*.42,g);
+  for(const sx of[-1,1])for(const sz of[-1,1]){const r=mesh(new THREE.TorusGeometry(.07,.018,8,14),M.gold,sx*.3,1.75,sz*.55,g);r.rotation.y=PI/2;}
+  for(const sz of[-1,1]){const p=mesh(new THREE.CylinderGeometry(.04,.04,2.6,8),M.gold,0,1.75,sz*.57,g);p.rotation.z=PI/2;}
+  for(let i=0;i<9;i++){const s=sprite(0xd9d4cc,.5,0,g,false);s.userData.t=i/9;smoke.push(s);}
+  boxes.push([-34.6,-31.8,-.75,.75]);
+}
+const altarLight=new THREE.PointLight(0xff8a3a,1.4,20,1.5);
+{
+  const g=group('altar',22,0,0);
+  const S=5,H=3,t=.15;
+  for(const sz of[-1,1])mesh(new THREE.BoxGeometry(S,H,t),M.bronze,0,H/2,sz*(S/2-t/2),g);
+  for(const sx of[-1,1])mesh(new THREE.BoxGeometry(t,H,S-2*t),M.bronze,sx*(S/2-t/2),H/2,0,g);
+  for(const sz of[-1,1])mesh(new THREE.BoxGeometry(S+.5,.12,.25),M.bronze,0,1.5,sz*(S/2+.12),g);
+  for(const sx of[-1,1])mesh(new THREE.BoxGeometry(.25,.12,S),M.bronze,sx*(S/2+.12),1.5,0,g);
+  const gm=std({map:TX.grate,color:col('#c78a4a'),metalness:.9,roughness:.4,transparent:true,alphaTest:.4,side:THREE.DoubleSide});
+  for(const sz of[-1,1]){const p=mesh(new THREE.PlaneGeometry(S,1.35),gm,0,.78,sz*(S/2+.03),g);p.castShadow=false;}
+  for(const sx of[-1,1]){const p=mesh(new THREE.PlaneGeometry(S,1.35),gm,sx*(S/2+.03),.78,0,g);p.rotation.y=PI/2;p.castShadow=false;}
+  for(const sx of[-1,1])for(const sz of[-1,1]){mesh(new THREE.CylinderGeometry(.12,.3,.6,8),M.bronze,sx*(S/2-.3),H+.3,sz*(S/2-.3),g);const r=mesh(new THREE.TorusGeometry(.16,.04,8,14),M.bronze,sx*(S/2-.4),1.25,sz*(S/2+.12),g);r.rotation.y=PI/2;}
+  for(const sz of[-1,1]){const p=mesh(new THREE.CylinderGeometry(.09,.09,9,8),M.bronze,0,1.25,sz*(S/2+.14),g);p.rotation.z=PI/2;}
+  const coal=mesh(new THREE.BoxGeometry(S-.4,.25,S-.4),std({color:col('#3a1a10'),emissive:col('#ff5a1a'),emissiveIntensity:.55,roughness:1}),0,1.6,0,g);coal.castShadow=false;
+  for(let i=0;i<7;i++){const f=sprite(i%2?0xff7a2a:0xffb347,1.6,.9,g,true);f.position.set((Math.random()-.5)*2.6,2.4,(Math.random()-.5)*2.6);f.userData.base=f.position.y;flames.push(f);}
+  altarLight.position.set(0,3.6,0);g.add(altarLight);
+  boxes.push([17.4,26.6,-2.95,2.95]);
+}
+{
+  const g=group('altar',21,0,-4.3);
+  mesh(new THREE.CylinderGeometry(.24,.2,.36,14),M.bronze,-1.4,.18,0,g);
+  mesh(new THREE.CylinderGeometry(.22,.1,.12,14),M.bronze,-.7,.06,0,g);
+  mesh(new THREE.BoxGeometry(.3,.02,.26),M.bronze,0,.02,0,g);rod(new THREE.Vector3(0,.03,.12),new THREE.Vector3(0,.03,1),.02,M.bronze,g);
+  rod(new THREE.Vector3(.7,.03,-.1),new THREE.Vector3(.7,.03,.8),.018,M.bronze,g);for(const o of[-.06,0,.06])rod(new THREE.Vector3(.7+o,.03,-.1),new THREE.Vector3(.7+o,.03,-.3),.01,M.bronze,g);
+  mesh(new THREE.CylinderGeometry(.22,.22,.06,16),M.bronze,1.5,.03,0,g);rod(new THREE.Vector3(1.5,.04,.22),new THREE.Vector3(1.5,.04,.8),.02,M.bronze,g);
+  boxes.push([19.3,23,-4.8,-3.4]);
+}
+{
+  const g=group('laver',5,0,0);
+  mesh(new THREE.CylinderGeometry(.45,.9,.25,20),M.bronze,0,.12,0,g);
+  mesh(new THREE.CylinderGeometry(.3,.45,1.4,16),M.bronze,0,.95,0,g);
+  const prof=[[.3,0],[.9,.12],[1.3,.4],[1.5,.78],[1.55,.85]].map(([a,b])=>new THREE.Vector2(a,b));
+  mesh(new THREE.LatheGeometry(prof,28),std({color:col('#a56d37'),metalness:1,roughness:.4,side:THREE.DoubleSide}),0,1.65,0,g);
+  const w=mesh(new THREE.CircleGeometry(1.45,28),M.water,0,2.42,0,g);w.rotation.x=-PI/2;w.castShadow=false;
+  boxes.push([3.4,6.6,-1.6,1.6]);
+}
+
+/* Aaron */
+const priest=new THREE.Group();scene.add(priest);
+const body=new THREE.Group();priest.add(body);
+let armL,armR;
+{
+  const g=body;
+  const si=(m,k)=>{m.userData.info=k;return m;};
+  si(mesh(new THREE.CylinderGeometry(.34,.42,3.0,20),M.white,0,1.5,0,g),'tunic');
+  si(mesh(new THREE.CylinderGeometry(.37,.47,2.4,24,1,true),M.robe,0,1.85,0,g),'robe');
+  si(mesh(new THREE.SphereGeometry(.38,20,12),M.robe,0,3.02,0,g),'robe').scale.set(1.05,.42,.8);
+  const hem=new THREE.Group();hem.userData.info='robe';g.add(hem);
+  const pm=TC.map(h=>std({color:col(h),roughness:.8}));
+  const bellG=new THREE.ConeGeometry(.05,.1,10),pomG=new THREE.SphereGeometry(.058,10,8);
+  for(let i=0;i<28;i++){
+    const a=i/28*PI*2,x=Math.cos(a)*.485,z=Math.sin(a)*.485;
+    if(i%2){const b=mesh(bellG,M.gold,x,.63,z,hem);b.rotation.x=PI;}
+    else mesh(pomG,pm[(i/2)%3],x,.64,z,hem);
+  }
+  si(mesh(new THREE.CylinderGeometry(.385,.43,1.0,24,1,true),M.ephod,0,2.45,0,g),'ephod');
+  si(mesh(new THREE.TorusGeometry(.43,.05,8,28),M.ephod,0,2.0,0,g),'ephod').rotation.x=PI/2;
+  const onyx=std({color:col('#23222a'),roughness:.15,metalness:.1});
+  for(const sx of[-1,1]){
+    si(mesh(new THREE.BoxGeometry(.16,.08,.36),M.ephod,sx*.24,3.12,0,g),'ephod');
+    si(mesh(new THREE.CylinderGeometry(.075,.075,.05,14),onyx,sx*.24,3.18,.02,g),'ephod');
+    si(mesh(new THREE.TorusGeometry(.08,.015,6,16),M.gold,sx*.24,3.19,.02,g),'ephod').rotation.x=PI/2;
+  }
+  const bp=new THREE.Group();bp.userData.info='breastpiece';bp.position.set(0,2.57,.405);bp.rotation.x=-.09;g.add(bp);
+  mesh(new THREE.BoxGeometry(.5,.5,.04),M.ephod,0,0,0,bp);
+  const gems=['#b33a2a','#bcc34c','#86c7bb','#3db6ad','#28438f','#1f8a4c','#d9772b','#9c7a5a','#7a3f9e','#e0b33c','#26262c','#8f2f2a'];
+  const gemG=new THREE.SphereGeometry(.041,12,8),setG=new THREE.TorusGeometry(.058,.011,6,16);
+  gems.forEach((h,i)=>{const r=Math.floor(i/3),c=i%3,x=(c-1)*.145,y=.2-r*.135;
+    mesh(gemG,std({color:col(h),roughness:.12,metalness:.05}),x,y,.035,bp).scale.z=.55;
+    mesh(setG,M.gold,x,y,.028,bp);});
+  for(const sx of[-1,1]){
+    rod(new THREE.Vector3(sx*.23,2.84,.42),new THREE.Vector3(sx*.24,3.16,.1),.012,M.gold,g).userData.info='breastpiece';
+    rod(new THREE.Vector3(sx*.23,2.31,.41),new THREE.Vector3(sx*.25,2.05,.43),.012,M.blue,g).userData.info='breastpiece';
+  }
+  armL=new THREE.Group();armR=new THREE.Group();
+  [[armL,-1],[armR,1]].forEach(([a,sx])=>{a.position.set(sx*.44,2.98,0);g.add(a);
+    si(mesh(new THREE.CylinderGeometry(.095,.12,1.05,10),M.white,0,-.52,0,a),'tunic');
+    si(mesh(new THREE.SphereGeometry(.085,10,8),M.skin,0,-1.1,.02,a),'tunic');});
+  si(mesh(new THREE.CylinderGeometry(.1,.11,.22,10),M.skin,0,3.2,0,g),'tunic');
+  si(mesh(new THREE.SphereGeometry(.2,18,14),M.skin,0,3.42,0,g),'tunic');
+  for(const sx of[-1,1])si(mesh(new THREE.SphereGeometry(.022,8,6),M.hair,sx*.07,3.46,.18,g),'tunic');
+  si(mesh(new THREE.ConeGeometry(.03,.08,6),M.skin,0,3.4,.2,g),'tunic').rotation.x=PI/2;
+  const beard=si(mesh(new THREE.ConeGeometry(.12,.26,12),M.hair,0,3.2,.13,g),'tunic');beard.rotation.x=PI;
+  si(mesh(new THREE.SphereGeometry(.205,16,12),M.hair,0,3.45,-.04,g),'tunic');
+  si(mesh(new THREE.CylinderGeometry(.22,.21,.26,20),M.white,0,3.62,0,g),'tunic');
+  for(const y of[3.53,3.66])si(mesh(new THREE.TorusGeometry(.215,.035,8,26),M.white,0,y,0,g),'tunic').rotation.x=PI/2;
+  si(mesh(new THREE.TorusGeometry(.224,.009,6,26),M.blue,0,3.6,0,g),'plate').rotation.x=PI/2;
+  si(mesh(new THREE.PlaneGeometry(.3,.075),std({map:TX.plate,metalness:.8,roughness:.3}),0,3.6,.232,g),'plate');
+}
+
+/* Pickables, marker, labels */
+const marker=new THREE.Mesh(new THREE.RingGeometry(.3,.5,28),new THREE.MeshBasicMaterial({color:0xc7a042,transparent:true,opacity:0,depthWrite:false}));
+marker.rotation.x=-PI/2;marker.position.y=.03;marker.userData.noHit=true;marker.visible=false;scene.add(marker);
+const pickables=[];
+scene.traverse(o=>{if(o.isMesh&&!o.userData.noHit)pickables.push(o);});
+
+const LABELS=[
+ ['gate','Gate',50,6.3,0,'gate'],['altar','Bronze altar',22,5.2,0,'out'],['laver','Bronze basin',5,4,0,'out'],['entrance','Tent entrance',-15,11.6,0,'out'],
+ ['table','Table',-27,2.5,-3.2,'in'],['lampstand','Lampstand',-27,4.3,3.2,'in'],['incense','Altar of incense',-33.2,2.9,0,'in'],['veil','Inner curtain',-35,8.6,0,'in'],['ark','Ark of the covenant',-40,3.7,0,'in']
+].map(([k,t,x,y,z,zone])=>{const b=document.createElement('button');b.className='tag';b.textContent=t;b.addEventListener('click',e=>{e.stopPropagation();openCard(k);});$('#labels').appendChild(b);return {el:b,p:new THREE.Vector3(x,y,z),zone:zone};});
+
+/* State */
+const P={x:60,z:0,facing:PI};
+let moving=false,stepT=0,lastBob=0,jx=0,jy=0;const K={};
+let view='third',camYaw=PI,camPitch=-.27,camDist=11,inspect=false;
+const portrait=innerWidth<innerHeight;let orbitYaw=portrait?.25:.9,orbitPitch=.85,aerialDist=portrait?165:120;
+let lastDrag=-10,coversOn=true,bellsOn=true;
+const SPEED=7,R=.45;
+const clock=new THREE.Clock();
+const raycaster=new THREE.Raycaster();
+
+function blocked(x,z){
+  if(Math.abs(x)>150||Math.abs(z)>110)return true;
+  for(const b of boxes){if(x>b[0]-R&&x<b[1]+R&&z>b[2]-R&&z<b[3]+R)return true;}
+  return false;
+}
+function effVisible(o){while(o){if(!o.visible)return false;o=o.parent;}return true;}
+function findInfo(o){while(o){if(o.userData&&o.userData.info)return o.userData.info;o=o.parent;}return null;}
+function isAvatar(o){while(o){if(o===priest)return true;o=o.parent;}return false;}
+const angDiff=(a,b)=>{let d=b-a;while(d>PI)d-=2*PI;while(d<-PI)d+=2*PI;return d;};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const inTent=(x,z)=>x>-45.5&&x<-15&&Math.abs(z)<5.5;
+
+/* The bells on the hem (28:35) */
+let actx=null;
+function ensureAudio(){try{if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}}
+function ring(){
+  if(!bellsOn||!actx)return;
+  const t=actx.currentTime,f=[2350,2640,2960,3140][Math.floor(Math.random()*4)];
+  [[1,.03,.7],[2.76,.01,.25]].forEach(([m,v,d])=>{const o=actx.createOscillator(),g=actx.createGain();o.type='sine';o.frequency.value=f*m;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+d+.05);});
+}
+
+/* Input */
+const ptrs=new Map();let dragMoved=false,downT=0,downX=0,downY=0,pinchD=0;
+const pdist=()=>{const a=[...ptrs.values()];return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1;};
+cv.addEventListener('pointerdown',e=>{
+  ensureAudio();
+  try{cv.setPointerCapture(e.pointerId);}catch(_){}
+  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1){dragMoved=false;downT=performance.now();downX=e.clientX;downY=e.clientY;}
+  else if(ptrs.size===2){dragMoved=true;pinchD=pdist();}
+});
+cv.addEventListener('pointermove',e=>{
+  const p=ptrs.get(e.pointerId);if(!p)return;
+  const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;
+  if(ptrs.size===2){const d=pdist();zoomBy(pinchD/d);pinchD=d;return;}
+  if(!dragMoved&&Math.hypot(e.clientX-downX,e.clientY-downY)>8)dragMoved=true;
+  if(dragMoved){look(dx,dy);lastDrag=clock.elapsedTime;}
+});
+const endPtr=e=>{const single=ptrs.size===1;ptrs.delete(e.pointerId);if(e.type==='pointerup'&&single&&!dragMoved&&performance.now()-downT<650)onTap(e.clientX,e.clientY);};
+cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
+cv.addEventListener('wheel',e=>{e.preventDefault();zoomBy(Math.exp(e.deltaY*.0012));},{passive:false});
+
+function look(dx,dy){
+  if(view==='aerial'){orbitYaw-=dx*.006;orbitPitch=clamp(orbitPitch+dy*.004,.2,1.45);return;}
+  camYaw+=dx*.005;
+  camPitch=clamp(camPitch-dy*.004,view==='first'?-1.2:-1.1,view==='first'?1.2:.35);
+}
+function zoomBy(f){
+  if(view==='aerial')aerialDist=clamp(aerialDist*f,25,260);
+  else if(view==='third')camDist=clamp(camDist*f,2.2,14);
+  else{camera.fov=clamp(camera.fov*f,30,75);camera.updateProjectionMatrix();}
+}
+function onTap(x,y){
+  raycaster.setFromCamera(new THREE.Vector2(x/innerWidth*2-1,-(y/innerHeight)*2+1),camera);
+  const hits=raycaster.intersectObjects(pickables,false);
+  for(const h of hits){
+    const o=h.object;
+    if(!effVisible(o))continue;
+    const scr=o.userData.screen;
+    if(scr&&o.material.opacity<.6)continue;
+    if(view==='first'&&isAvatar(o))continue;
+    if(o.userData.ground)return;
+    const k=findInfo(o);
+    if(k)openCard(k);
+    return;
+  }
+}
+const stick=$('#stick'),knob=$('#knob');let stickId=null;
+const hideHint=()=>$('#hint').classList.add('gone');
+function moveStick(e){const r=stick.getBoundingClientRect();let dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);const max=r.width/2-12,d=Math.hypot(dx,dy);if(d>max){dx*=max/d;dy*=max/d;}knob.style.transform='translate('+dx+'px,'+dy+'px)';jx=dx/max;jy=dy/max;}
+stick.addEventListener('pointerdown',e=>{e.preventDefault();ensureAudio();stickId=e.pointerId;try{stick.setPointerCapture(e.pointerId);}catch(_){}moveStick(e);hideHint();closeCard();inspect=false;});
+stick.addEventListener('pointermove',e=>{if(e.pointerId===stickId)moveStick(e);});
+const endStick=e=>{if(e.pointerId!==stickId)return;stickId=null;jx=jy=0;knob.style.transform='';};
+stick.addEventListener('pointerup',endStick);stick.addEventListener('pointercancel',endStick);
+const MOVEKEYS=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
+addEventListener('keydown',e=>{if(MOVEKEYS.includes(e.code)){K[e.code]=true;ensureAudio();hideHint();e.preventDefault();}});
+addEventListener('keyup',e=>{K[e.code]=false;});
+addEventListener('blur',()=>{for(const k in K)K[k]=false;});
+
+/* UI */
+const sheet=$('#sheet'),drawer=$('#drawer');
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+const spotFor={};
+PLACES.forEach(s=>s.items.forEach(([k,sp,cov])=>{if(Array.isArray(sp))spotFor[k]={sp:sp,cov:cov};}));
+
+function openCard(k){
+  const d=INFO[k];if(!d)return;
+  $('#cardTitle').textContent=d.t;$('#cardRef').textContent=d.r;
+  const b=$('#cardBody');b.innerHTML='';
+  const acts=el('div','acts');
+  if(spotFor[k]){const bt=el('button',null,'Take me there');bt.onclick=()=>goTo(k);acts.appendChild(bt);}
+  if(k==='courtyard'){const bt=el('button',null,'See it from above');bt.onclick=()=>{setView('aerial');closeCard();};acts.appendChild(bt);}
+  if(d.garment){const bt=el('button',null,'Look at Aaron');bt.onclick=()=>inspectPriest();acts.appendChild(bt);}
+  if(k==='frames'||k==='coverings'){const bt=el('button',null,coversOn?'Hide tent covers':'Show tent covers');bt.onclick=()=>{setCovers(!coversOn);bt.textContent=coversOn?'Hide tent covers':'Show tent covers';};acts.appendChild(bt);}
+  if(acts.children.length)b.appendChild(acts);
+  const ul=el('ul');d.p.forEach(t=>ul.appendChild(el('li',null,t)));b.appendChild(ul);
+  if(d.d){const dl=el('dl','dims');d.d.forEach(([a,v])=>{dl.appendChild(el('dt',null,a));dl.appendChild(el('dd',null,v));});b.appendChild(dl);}
+  if(d.n){const n=el('div','note');n.appendChild(el('strong',null,'Interpretation note. '));n.appendChild(document.createTextNode(d.n));b.appendChild(n);}
+  b.scrollTop=0;sheet.classList.add('open');
+}
+function closeCard(){sheet.classList.remove('open');}
+$('#cardClose').onclick=closeCard;
+{
+  const list=$('#placeList');
+  PLACES.forEach(s=>{
+    list.appendChild(el('h3',null,s.sec));
+    s.items.forEach(([k,sp])=>{
+      const b=el('button','place');b.appendChild(el('span',null,INFO[k].t));b.appendChild(el('small',null,INFO[k].r.split(';')[0]));
+      b.onclick=()=>{drawer.classList.remove('open');
+        if(sp==='aerial'){setView('aerial');openCard(k);}
+        else if(Array.isArray(sp))goTo(k);
+        else if(INFO[k].garment){inspectPriest();openCard(k);}
+        else openCard(k);};
+      list.appendChild(b);
+    });
+  });
+}
+$('#placesBtn').onclick=()=>drawer.classList.add('open');
+$('#drawerClose').onclick=()=>drawer.classList.remove('open');
+
+function goTo(k){
+  const s=spotFor[k];if(!s)return;
+  const [x,z,tx,tz]=s.sp;
+  const f=$('#fade');f.classList.add('on');closeCard();
+  setTimeout(()=>{
+    P.x=x;P.z=z;P.facing=Math.atan2(tz-z,tx-x);camYaw=P.facing;
+    if(view==='aerial')setView('third');
+    const tn=inTent(x,z);camPitch=view==='first'?-.12:(tn?-.32:-.22);camDist=tn?5.4:7;
+    moving=false;inspect=false;
+    if(s.cov==='off')setCovers(false);if(s.cov==='on')setCovers(true);
+    $('#hint').classList.add('gone');
+    f.classList.remove('on');openCard(k);
+  },230);
+}
+function inspectPriest(){if(view!=='third')setView('third');inspect=true;moving=false;camYaw=P.facing+PI;camPitch=-.05;camDist=2.8;}
+const VIEWS=['third','first','aerial'],VNAME={third:'behind Aaron',first:'Aaron’s eyes',aerial:'from above'};
+function setView(v){view=v;$('#viewBtn').innerHTML='View: <b>'+VNAME[v]+'</b>';priest.visible=v!=='first';if(v!=='first'){camera.fov=58;camera.updateProjectionMatrix();}if(v==='first')camPitch=clamp(camPitch,-.4,.3);}
+$('#viewBtn').onclick=()=>setView(VIEWS[(VIEWS.indexOf(view)+1)%3]);
+function setCovers(on){coversOn=on;covers.visible=on;$('#coverBtn').innerHTML='Tent covers: <b>'+(on?'on':'off')+'</b>';}
+$('#coverBtn').onclick=()=>setCovers(!coversOn);
+$('#bellBtn').onclick=()=>{bellsOn=!bellsOn;ensureAudio();$('#bellBtn').innerHTML='Robe bells: <b>'+(bellsOn?'on':'off')+'</b>';if(bellsOn)ring();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCard();drawer.classList.remove('open');}});
+
+/* Loop */
+const tmpV=new THREE.Vector3(),head=new THREE.Vector3(),lookV=new THREE.Vector3(),back=new THREE.Vector3(),orbitC=new THREE.Vector3(-5,0,0);
+const TRY=[0,.45,-.45,.9,-.9,1.35,-1.35];
+function update(dt,t){
+  let ix=jx,iy=jy;
+  if(K.KeyW||K.ArrowUp)iy-=1;if(K.KeyS||K.ArrowDown)iy+=1;if(K.KeyA||K.ArrowLeft)ix-=1;if(K.KeyD||K.ArrowRight)ix+=1;
+  const mag=Math.min(1,Math.hypot(ix,iy));
+  moving=mag>.15;
+  if(moving){
+    inspect=false;
+    const yr=view==='aerial'?orbitYaw+PI:camYaw,fx=Math.cos(yr),fz=Math.sin(yr);
+    const mx=fx*(-iy)-fz*ix,mz=fz*(-iy)+fx*ix,a0=Math.atan2(mz,mx),st=SPEED*mag*dt;let ok=false;
+    for(const o of TRY){const a=a0+o,nx=P.x+Math.cos(a)*st,nz=P.z+Math.sin(a)*st;if(!blocked(nx,nz)){P.x=nx;P.z=nz;ok=true;break;}}
+    if(view!=='first'&&ok)P.facing+=angDiff(P.facing,a0)*Math.min(1,dt*10);
+    if(ok)stepT+=dt*(.5+mag*.5);else moving=false;
+  }
+  if(view==='first')P.facing=camYaw;
+  priest.position.set(P.x,0,P.z);
+  priest.rotation.y=PI/2-P.facing;
+  const sw=moving?Math.sin(stepT*9):0;
+  body.position.y=moving?Math.abs(sw)*.05:body.position.y*.85;
+  armL.rotation.x=moving?sw*.35:armL.rotation.x*.85;armR.rotation.x=-armL.rotation.x;
+  if(moving){const s=Math.sign(sw);if(s!==0&&s!==lastBob){lastBob=s;ring();}}
+
+  if(view==='aerial'){
+    camera.position.set(orbitC.x+Math.cos(orbitPitch)*Math.cos(orbitYaw)*aerialDist,Math.sin(orbitPitch)*aerialDist,orbitC.z+Math.cos(orbitPitch)*Math.sin(orbitYaw)*aerialDist);
+    camera.lookAt(orbitC);
+  }else{
+    lookV.set(Math.cos(camPitch)*Math.cos(camYaw),Math.sin(camPitch),Math.cos(camPitch)*Math.sin(camYaw));
+    if(view==='first'){
+      camera.position.set(P.x,3.45+body.position.y,P.z);
+      camera.lookAt(tmpV.copy(camera.position).add(lookV));
+    }else{
+      const sh=inspect?0:.95;
+      head.set(P.x-Math.sin(camYaw)*sh,inspect?2.7:3.3,P.z+Math.cos(camYaw)*sh);
+      let dist=inspect?camDist:(inTent(P.x,P.z)?Math.min(camDist,5.4):camDist);
+      back.copy(lookV).negate();
+      raycaster.set(head,back);raycaster.far=dist+.3;
+      const hs=raycaster.intersectObjects(camBlockers,false);
+      for(const h of hs){if(effVisible(h.object)){dist=Math.max(.7,Math.min(dist,h.distance-.35));break;}}
+      raycaster.far=Infinity;
+      camera.position.copy(head).addScaledVector(back,dist);
+      if(camera.position.y<.4)camera.position.y=.4;
+      camera.lookAt(head.x+lookV.x,head.y+lookV.y,head.z+lookV.z);
+    }
+  }
+
+  const cx=camera.position.x;
+  for(const s of screens){
+    let op=1;
+    if(view!=='aerial'){
+      const near=Math.abs(P.x-s.at)<3.2&&P.z>s.min-1&&P.z<s.max+1;
+      const cross=(P.x-s.at)*(cx-s.at)<0&&Math.abs(P.z)<s.max+4;
+      if(cross)op=.08;else if(near)op=.22;
+    }
+    const m=s.mesh.material;m.opacity+=(op-m.opacity)*Math.min(1,dt*7);m.depthWrite=m.opacity>.95;
+  }
+
+  flames.forEach((f,i)=>{const k=1+Math.sin(t*11+i*1.7)*.12+Math.sin(t*23+i)*.06;const b=f.userData.base;const s=(b?1.6:.32)*k;f.scale.set(s*(b?1:.7),s,1);if(b)f.position.y=b+Math.sin(t*4+i)*.15;});
+  lampLight.intensity=1.2+Math.sin(t*13)*.06+Math.sin(t*29)*.04;
+  altarLight.intensity=1.4+Math.sin(t*9)*.18+Math.sin(t*17)*.1;
+  smoke.forEach(s=>{const u=(t*.18+s.userData.t)%1;s.position.set(Math.sin(u*9+s.userData.t*6)*.15,2.15+u*3.2,Math.cos(u*7)*.1);s.material.opacity=Math.sin(u*PI)*.28;const sc=.35+u*1.2;s.scale.set(sc,sc,1);});
+
+  const W=innerWidth,H=innerHeight,cp=camera.position,camIn=inTent(cp.x,cp.z)&&cp.y<10;
+  const inYard=Math.abs(cp.x)<50&&Math.abs(cp.z)<25;
+  LABELS.forEach(L=>{L.d=cp.distanceTo(L.p);});
+  const placed=[];
+  LABELS.slice().sort((a,b)=>a.d-b.d).forEach(L=>{
+    let show;
+    if(view==='aerial')show=L.zone!=='in'||!coversOn;
+    else if(camIn)show=L.zone==='in';
+    else if(inYard)show=L.zone!=='in'||!coversOn;
+    else show=L.zone==='gate'||(!coversOn&&false);
+    if(show&&view!=='aerial'&&L.d>70)show=false;
+    let sx=0,sy=0;
+    if(show){tmpV.copy(L.p).project(camera);if(tmpV.z>1||tmpV.z<-1||Math.abs(tmpV.x)>1.05||Math.abs(tmpV.y)>1.05)show=false;else{sx=(tmpV.x+1)/2*W;sy=(1-tmpV.y)/2*H;}}
+    if(show){const w=(L.w||(L.w=L.el.offsetWidth||90))/2+4;for(const q of placed){if(Math.abs(q[0]-sx)<w+q[2]&&Math.abs(q[1]-sy)<28){show=false;break;}}if(show)placed.push([sx,sy,w]);}
+    if(show){L.el.style.display='block';L.el.style.transform='translate('+sx.toFixed(1)+'px,'+sy.toFixed(1)+'px) translate(-50%,-100%)';}
+    else L.el.style.display='none';
+  });
+}
+let first=true;
+function frame(){
+  const dt=Math.min(.05,clock.getDelta()),t=clock.elapsedTime;
+  update(dt,t);
+  renderer.render(scene,camera);
+  if(first){first=false;$('#loading').classList.add('done');}
+  requestAnimationFrame(frame);
+}
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+setView('third');
+frame();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<title>Solomon's Temple</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Marcellus&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --ground:#120f0b; --panel:rgba(22,18,13,.93); --panel-solid:#17130e; --line:#3b3226; --line-soft:#2a241b;
+  --text:#efe5cf; --muted:#a6977b; --faint:#766a55;
+  --gold:#d6b25e; --gold-deep:#9c7a31; --bronze:#b98252;
+  --explicit:#93c08c; --explicit-bg:rgba(147,192,140,.12);
+  --interp:#e89f4f; --interp-bg:rgba(232,159,79,.13);
+  --display:"Marcellus","Trajan Pro","Palatino Linotype",Georgia,serif;
+  --verse:"EB Garamond","Garamond","Palatino Linotype",Georgia,serif;
+  --ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--ground);color:var(--text);font-family:var(--ui);font-size:14px;overflow:hidden;-webkit-font-smoothing:antialiased}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+button{font:inherit;color:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* brand */
+.brand{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:16px;z-index:5;max-width:min(430px,calc(100vw - 230px));pointer-events:none}
+.brand .eyebrow{font:500 10.5px/1.2 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--gold);opacity:.9}
+.brand h1{font:400 28px/1.05 var(--display);margin:4px 0 8px;letter-spacing:.02em;text-shadow:0 2px 14px rgba(0,0,0,.6);text-wrap:balance}
+.models{display:flex;gap:4px;flex-wrap:wrap;pointer-events:auto}
+.models button{background:rgba(18,15,11,.72);border:1px solid var(--line);border-radius:3px;padding:4px 8px;font-size:11.5px;cursor:pointer}
+.models button[aria-pressed="true"]{border-color:var(--gold-deep);color:var(--gold)}
+.models button:disabled{cursor:not-allowed;color:var(--faint)}
+.models button span{font-size:10px;color:var(--faint);margin-left:4px}
+
+/* tools */
+.tools{position:fixed;left:16px;top:calc(118px + env(safe-area-inset-top,0px));z-index:5;display:flex;flex-direction:column;gap:3px;width:198px}
+.tools .grp{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:4px;display:flex;flex-direction:column;gap:2px}
+.tools .grp-h{font:500 9.5px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:4px 6px 2px}
+.tbtn{display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:0;border-radius:3px;padding:5px 7px;cursor:pointer;text-align:left;font-size:12.5px}
+.tbtn:hover{background:rgba(214,178,94,.08)}
+.tbtn kbd{font:500 10px var(--mono);color:var(--faint);border:1px solid var(--line);border-radius:2px;padding:0 4px}
+.tbtn[aria-pressed="true"]{color:var(--gold);background:rgba(214,178,94,.1)}
+.tbtn[aria-pressed="true"] kbd{color:var(--gold);border-color:var(--gold-deep)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px 3px 4px}
+.seg button{background:transparent;border:1px solid var(--line);border-radius:3px;padding:4px 0;font:500 11px var(--mono);cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{border-color:var(--gold-deep);color:var(--gold);background:rgba(214,178,94,.08)}
+.seg-l{font-size:11px;color:var(--muted);padding:3px 7px 0}
+#menuBtn{display:none}
+
+/* minimap */
+.mapwrap{position:fixed;right:16px;top:calc(12px + env(safe-area-inset-top,0px));z-index:5;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+#mini{width:176px;height:176px;border-radius:50%;border:1px solid var(--line);background:rgba(18,15,11,.8);box-shadow:0 6px 24px rgba(0,0,0,.4)}
+#zone{font:400 13px var(--display);letter-spacing:.06em;background:var(--panel);border:1px solid var(--line-soft);border-radius:3px;padding:4px 9px;color:var(--gold)}
+body.panel-open .mapwrap{right:calc(400px + 16px)}
+body.panel-open #tourbar,body.panel-open #prompt{left:calc((100vw - 400px)/2);max-width:calc(100vw - 400px - 32px)}
+body.panel-open #bpnote{left:calc((100vw - 400px)/2)}
+
+/* verse panel */
+#panel{position:fixed;right:0;top:0;bottom:0;width:400px;z-index:8;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+#panel .ph{padding:18px 20px 12px;border-bottom:1px solid var(--line-soft);position:relative}
+#panel .refs{font:500 10.5px var(--mono);color:var(--gold);letter-spacing:.04em}
+#panel h2{font:400 24px/1.15 var(--display);margin:6px 34px 10px 0;text-wrap:balance}
+#panel .badges{display:flex;flex-wrap:wrap;gap:5px}
+.badge{font:600 9.5px var(--ui);letter-spacing:.12em;padding:3px 7px;border-radius:2px;border:1px solid}
+.badge.e{color:var(--explicit);border-color:rgba(147,192,140,.5);background:var(--explicit-bg)}
+.badge.i{color:var(--interp);border-color:rgba(232,159,79,.55);background:var(--interp-bg);border-style:dashed}
+#closePanel{position:absolute;right:12px;top:14px;width:30px;height:30px;border:1px solid var(--line);border-radius:3px;background:transparent;cursor:pointer;font-size:16px;color:var(--muted)}
+#panel .pb{overflow-y:auto;padding:4px 20px 28px;flex:1;overscroll-behavior:contain}
+#panel h3{font:500 10px var(--ui);letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:20px 0 8px}
+.dims{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.dims td{padding:5px 0;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.dims td:nth-child(2),.dims td:nth-child(3){text-align:right;font-family:var(--mono);font-size:12px;white-space:nowrap;padding-left:10px}
+.dims td:nth-child(3){color:var(--gold)}
+.dims .tag{font:600 8.5px var(--ui);letter-spacing:.1em;color:var(--interp);margin-left:5px}
+.dims .note{color:var(--muted);font-family:var(--ui);font-size:12px;text-align:right}
+.lede{color:var(--muted);font-size:13px;line-height:1.55;margin:4px 0 0}
+.verse{margin:0 0 14px;padding:0 0 0 14px;border-left:2px solid var(--gold-deep)}
+.verse p{font:400 17px/1.5 var(--verse);margin:0;color:#f4ead4}
+.verse cite{display:block;font:500 10.5px var(--mono);font-style:normal;color:var(--gold);margin-top:4px}
+.verse.aux{border-left-color:var(--line)}
+.verse.aux p{font-size:15.5px;color:var(--muted)}
+.interp{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.interp li{font-size:13px;line-height:1.55;color:#ddd1b8;padding:9px 11px;border:1px dashed rgba(232,159,79,.45);background:var(--interp-bg);border-radius:3px}
+.explicit-box{font-size:13px;line-height:1.55;color:#dfe9dc;padding:9px 11px;border:1px solid rgba(147,192,140,.4);background:var(--explicit-bg);border-radius:3px}
+
+/* prompt, cross, tour */
+#prompt{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(26px + env(safe-area-inset-bottom,0px));z-index:6;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:7px 12px;font-size:12.5px;white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
+#prompt b{font-family:var(--display);font-weight:400;color:var(--gold);font-size:14px}
+#cross{position:fixed;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;z-index:4;pointer-events:none}
+#cross::before,#cross::after{content:"";position:absolute;background:rgba(255,240,210,.7)}
+#cross::before{left:6px;top:0;width:2px;height:14px}#cross::after{top:6px;left:0;height:2px;width:14px}
+#tourbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:7;background:var(--panel-solid);border:1px solid var(--gold-deep);border-radius:4px;padding:8px;display:flex;align-items:center;gap:6px;max-width:calc(100vw - 32px);flex-wrap:wrap;justify-content:center}
+#tourbar .ti{font:500 11px var(--mono);color:var(--muted);padding:0 6px;min-width:108px;text-align:center}
+#tourbar .ti b{display:block;font:400 14px var(--display);color:var(--gold);letter-spacing:.03em;white-space:nowrap}
+.pill{background:transparent;border:1px solid var(--line);border-radius:3px;padding:6px 10px;cursor:pointer;font-size:12px}
+.pill:hover{border-color:var(--gold-deep)}
+.pill.primary{background:var(--gold);color:#1a140b;border-color:var(--gold);font-weight:600}
+#bpnote{position:fixed;left:50%;transform:translateX(-50%);top:calc(14px + env(safe-area-inset-top,0px));z-index:6;background:#10233a;color:#cfe3ff;border:1px solid #2d4f78;border-radius:3px;padding:6px 12px;font:500 11.5px var(--mono)}
+
+/* intro */
+#intro{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:radial-gradient(ellipse at center,rgba(18,15,11,.55),rgba(10,8,6,.92));padding:16px;overflow-y:auto}
+#intro .card{max-width:620px;width:100%;background:var(--panel-solid);border:1px solid var(--line);border-radius:4px;padding:26px 28px}
+#intro .eyebrow{font:500 10.5px var(--ui);letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+#intro h2{font:400 34px/1.1 var(--display);margin:8px 0 10px;text-wrap:balance}
+#intro p{color:var(--muted);line-height:1.6;margin:0 0 12px;font-size:13.5px}
+#intro .q{font:italic 400 18px/1.45 var(--verse);color:#f1e6cc;border-left:2px solid var(--gold-deep);padding-left:14px;margin:14px 0}
+#intro .q cite{display:block;font:500 10.5px var(--mono);color:var(--gold);font-style:normal;margin-top:4px}
+.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:4px 16px;font-size:12.5px;margin:12px 0 16px;color:#d9cdb3}
+.keys kbd{font:500 10.5px var(--mono);border:1px solid var(--line);border-radius:2px;padding:0 4px;color:var(--gold);margin-right:6px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted);margin-bottom:16px}
+.src{font-size:11.5px;color:var(--faint);line-height:1.55;margin-top:14px;border-top:1px solid var(--line-soft);padding-top:12px}
+#intro .actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* touch */
+#touch{position:fixed;inset:auto 0 0 0;height:0;z-index:6}
+#stick{position:fixed;left:24px;bottom:calc(28px + env(safe-area-inset-bottom,0px));width:120px;height:120px;border-radius:50%;border:1px solid rgba(214,178,94,.45);background:rgba(18,15,11,.35);touch-action:none}
+#knob{position:absolute;left:40px;top:40px;width:40px;height:40px;border-radius:50%;background:rgba(214,178,94,.55)}
+.tbtns{position:fixed;right:18px;bottom:calc(28px + env(safe-area-inset-bottom,0px));display:flex;gap:8px}
+.tbtns button{width:58px;height:58px;border-radius:50%;border:1px solid rgba(214,178,94,.5);background:rgba(18,15,11,.55);font:600 11px var(--ui);color:var(--gold);touch-action:none}
+.tbtns button[aria-pressed="true"]{background:rgba(214,178,94,.35);color:#fff}
+
+@media (max-width:760px){
+  .brand{max-width:calc(100vw - 130px)}
+  .brand h1{font-size:21px}
+  .models button{font-size:10.5px;padding:3px 6px}
+  #menuBtn{display:block;position:fixed;left:16px;top:calc(126px + env(safe-area-inset-top,0px));z-index:6;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:6px 10px;font-size:12px;cursor:pointer}
+  .tools{top:calc(162px + env(safe-area-inset-top,0px));max-height:calc(100vh - 330px);overflow-y:auto}
+  .tools:not(.open){display:none}
+  #mini{width:108px;height:108px}
+  #panel{top:auto;left:0;width:auto;height:56vh;border-left:0;border-top:1px solid var(--line);border-radius:10px 10px 0 0;padding-top:0;padding-bottom:env(safe-area-inset-bottom,0px)}
+  body.panel-open .mapwrap{right:16px}
+  body.panel-open #tourbar{left:50%;max-width:calc(100vw - 32px);bottom:calc(56vh + 10px)}
+  body.panel-open #touch,body.panel-open #prompt{display:none}
+  #tourbar{bottom:calc(166px + env(safe-area-inset-bottom,0px));padding:6px;gap:4px}
+  #tourbar .ti{flex-basis:100%;order:-1;padding-bottom:4px}
+  #tourbar .long{display:none}
+  #tourbar .pill{padding:6px 9px}
+  #intro .card{padding:20px}
+  #intro h2{font-size:26px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<canvas id="gl" tabindex="0" aria-label="3D view of Solomon's Temple"></canvas>
+
+<header class="brand">
+  <div class="eyebrow">1 Kings 6–8 · 2 Chronicles 3–4 · KJV</div>
+  <h1>Solomon's Temple</h1>
+  <div class="models" id="models"></div>
+</header>
+
+<button id="menuBtn" aria-expanded="false">Controls</button>
+<nav class="tools" id="tools" aria-label="View controls">
+  <div class="grp">
+    <div class="grp-h">View</div>
+    <button class="tbtn" id="bView" aria-pressed="false"><span id="viewLabel">Third person</span><kbd>V</kbd></button>
+    <button class="tbtn" id="bCut" aria-pressed="false"><span>Cutaway roof</span><kbd>C</kbd></button>
+    <button class="tbtn" id="bBlue" aria-pressed="false"><span>Blueprint (top-down)</span><kbd>B</kbd></button>
+    <button class="tbtn" id="bDims" aria-pressed="false"><span>Dimension overlay</span><kbd>M</kbd></button>
+    <button class="tbtn" id="bInterp" aria-pressed="false"><span>Tint reconstructed parts</span><kbd>I</kbd></button>
+  </div>
+  <div class="grp">
+    <div class="grp-h">Explore</div>
+    <button class="tbtn" id="bTour" aria-pressed="false"><span>Guided tour</span><kbd>T</kbd></button>
+    <button class="tbtn" id="bVerse" aria-pressed="true"><span>Verse mode (auto)</span><kbd>R</kbd></button>
+    <button class="tbtn" id="bLamp" aria-pressed="true"><span>Hand lamp</span><kbd>L</kbd></button>
+    <button class="tbtn" id="bSound" aria-pressed="false"><span>Ambient sound</span><kbd>N</kbd></button>
+    <button class="tbtn" id="bHelp" aria-pressed="false"><span>Help &amp; sources</span><kbd>H</kbd></button>
+  </div>
+  <div class="grp">
+    <div class="grp-h">Measure</div>
+    <div class="seg-l">Cubit</div>
+    <div class="seg" id="segCubit"><button data-v="standard" aria-pressed="true">0.45 m</button><button data-v="long" aria-pressed="false">0.525 m</button></div>
+    <div class="seg-l">Porch height (2 Chr 3:4)</div>
+    <div class="seg" id="segPorch"><button data-v="20" aria-pressed="true">20 c</button><button data-v="120" aria-pressed="false">120 c</button></div>
+  </div>
+</nav>
+
+<div class="mapwrap"><canvas id="mini" width="352" height="352" aria-label="Mini-map"></canvas><div id="zone">Great court</div></div>
+<div id="cross" hidden></div>
+<div id="prompt" hidden></div>
+<div id="bpnote" hidden>BLUEPRINT · grid = 10 cubits · drag to pan · scroll or pinch to zoom · click an object to read</div>
+<div id="tourbar" hidden>
+  <button class="pill" id="tPrev" aria-label="Previous stop">‹<span class="long"> Prev</span></button>
+  <div class="ti" id="tInfo"></div>
+  <button class="pill primary" id="tNext" aria-label="Next stop">Next ›</button>
+  <button class="pill" id="tAuto" aria-pressed="false">Auto</button>
+  <button class="pill" id="tWalk">Walk<span class="long"> from here</span></button>
+  <button class="pill" id="tExit">End<span class="long"> tour</span></button>
+</div>
+
+<aside id="panel" hidden aria-live="polite">
+  <div class="ph">
+    <div class="refs" id="pRefs"></div>
+    <h2 id="pName"></h2>
+    <div class="badges" id="pBadges"></div>
+    <button id="closePanel" aria-label="Close panel">×</button>
+  </div>
+  <div class="pb" id="pBody"></div>
+</aside>
+
+<div id="touch" hidden>
+  <div id="stick"><div id="knob"></div></div>
+  <div class="tbtns"><button id="tbRun" aria-pressed="false">RUN</button><button id="tbRead">READ</button><button id="tbView">VIEW</button></div>
+</div>
+
+<div id="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+  <div class="card">
+    <div class="eyebrow">A text-faithful reconstruction</div>
+    <h2 id="introTitle">Walk through the house Solomon built</h2>
+    <div class="q">And the house which king Solomon built for the LORD, the length thereof was threescore cubits, and the breadth thereof twenty cubits, and the height thereof thirty cubits.<cite>1 Kings 6:2 (KJV)</cite></div>
+    <p>Every structure and furnishing here is tied to its verses. Walk up to anything, or click it, to read the verbatim King James text, the stated measurements in cubits and metres, and exactly what had to be reconstructed where the text is silent.</p>
+    <div class="legend"><span class="badge e">EXPLICIT IN TEXT</span><span>stated in Scripture</span><span class="badge i">INTERPRETED / RECONSTRUCTED</span><span>text silent or ambiguous</span></div>
+    <div class="keys">
+      <div><kbd>W A S D</kbd>walk · <kbd>Shift</kbd>run</div>
+      <div><kbd>Mouse</kbd>look (click to capture)</div>
+      <div><kbd>E</kbd>read the nearest object</div>
+      <div><kbd>T</kbd>guided tour in text order</div>
+      <div><kbd>C</kbd>cutaway · <kbd>B</kbd>blueprint</div>
+      <div><kbd>M</kbd>dimensions · <kbd>V</kbd>1st/3rd person</div>
+    </div>
+    <div class="actions">
+      <button class="pill primary" id="startBtn">Enter the court</button>
+      <button class="pill" id="startTour">Start the guided tour</button>
+    </div>
+    <div class="src">
+      <b>Assumptions.</b> Standard cubit 0.45 m; long cubit 0.525 m ("a cubit and an hand breadth", Ezekiel 40:5). Entrance faces east. Where the text is silent, choices are flagged on the object and explained with alternatives. Verse text: King James Version (public domain). Reference works cited for alternative readings include Keil &amp; Delitzsch, <i>Commentary on the Old Testament</i>; M. Cogan, <i>1 Kings</i> (Anchor Bible); S. Japhet, <i>I &amp; II Chronicles</i> (OTL); Th. A. Busink, <i>Der Tempel von Jerusalem</i>; J. Monson, "The New ʿAin Dara Temple," <i>BAR</i> 26:3 (2000); C. Meyers, "Jachin and Boaz," <i>CBQ</i> 45 (1983). The hand lamp and sound are visitor aids, not part of the reconstruction.
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script id="kjv" type="application/json">{"1 Kings 5:17": "And the king commanded, and they brought great stones, costly stones, and hewed stones, to lay the foundation of the house.", "1 Kings 6:1": "And it came to pass in the four hundred and eightieth year after the children of Israel were come out of the land of Egypt, in the fourth year of Solomon’s reign over Israel, in the month Zif, which is the second month, that he began to build the house of the LORD.", "1 Kings 6:2": "And the house which king Solomon built for the LORD, the length thereof was threescore cubits, and the breadth thereof twenty cubits, and the height thereof thirty cubits.", "1 Kings 6:3": "And the porch before the temple of the house, twenty cubits was the length thereof, according to the breadth of the house; and ten cubits was the breadth thereof before the house.", "1 Kings 6:4": "And for the house he made windows of narrow lights.", "1 Kings 6:5": "And against the wall of the house he built chambers round about, against the walls of the house round about, both of the temple and of the oracle: and he made chambers round about:", "1 Kings 6:6": "The nethermost chamber was five cubits broad, and the middle was six cubits broad, and the third was seven cubits broad: for without in the wall of the house he made narrowed rests round about, that the beams should not be fastened in the walls of the house.", "1 Kings 6:7": "And the house, when it was in building, was built of stone made ready before it was brought thither: so that there was neither hammer nor axe nor any tool of iron heard in the house, while it was in building.", "1 Kings 6:8": "The door for the middle chamber was in the right side of the house: and they went up with winding stairs into the middle chamber, and out of the middle into the third.", "1 Kings 6:9": "So he built the house, and finished it; and covered the house with beams and boards of cedar.", "1 Kings 6:10": "And then he built chambers against all the house, five cubits high: and they rested on the house with timber of cedar.", "1 Kings 6:11": "And the word of the LORD came to Solomon, saying,", "1 Kings 6:12": "Concerning this house which thou art in building, if thou wilt walk in my statutes, and execute my judgments, and keep all my commandments to walk in them; then will I perform my word with thee, which I spake unto David thy father:", "1 Kings 6:13": "And I will dwell among the children of Israel, and will not forsake my people Israel.", "1 Kings 6:14": "So Solomon built the house, and finished it.", "1 Kings 6:15": "And he built the walls of the house within with boards of cedar, both the floor of the house, and the walls of the cieling: and he covered them on the inside with wood, and covered the floor of the house with planks of fir.", "1 Kings 6:16": "And he built twenty cubits on the sides of the house, both the floor and the walls with boards of cedar: he even built them for it within, even for the oracle, even for the most holy place.", "1 Kings 6:17": "And the house, that is, the temple before it, was forty cubits long.", "1 Kings 6:18": "And the cedar of the house within was carved with knops and open flowers: all was cedar; there was no stone seen.", "1 Kings 6:19": "And the oracle he prepared in the house within, to set there the ark of the covenant of the LORD.", "1 Kings 6:20": "And the oracle in the forepart was twenty cubits in length, and twenty cubits in breadth, and twenty cubits in the height thereof: and he overlaid it with pure gold; and so covered the altar which was of cedar.", "1 Kings 6:21": "So Solomon overlaid the house within with pure gold: and he made a partition by the chains of gold before the oracle; and he overlaid it with gold.", "1 Kings 6:22": "And the whole house he overlaid with gold, until he had finished all the house: also the whole altar that was by the oracle he overlaid with gold.", "1 Kings 6:23": "And within the oracle he made two cherubims of olive tree, each ten cubits high.", "1 Kings 6:24": "And five cubits was the one wing of the cherub, and five cubits the other wing of the cherub: from the uttermost part of the one wing unto the uttermost part of the other were ten cubits.", "1 Kings 6:25": "And the other cherub was ten cubits: both the cherubims were of one measure and one size.", "1 Kings 6:26": "The height of the one cherub was ten cubits, and so was it of the other cherub.", "1 Kings 6:27": "And he set the cherubims within the inner house: and they stretched forth the wings of the cherubims, so that the wing of the one touched the one wall, and the wing of the other cherub touched the other wall; and their wings touched one another in the midst of the house.", "1 Kings 6:28": "And he overlaid the cherubims with gold.", "1 Kings 6:29": "And he carved all the walls of the house round about with carved figures of cherubims and palm trees and open flowers, within and without.", "1 Kings 6:30": "And the floor of the house he overlaid with gold, within and without.", "1 Kings 6:31": "And for the entering of the oracle he made doors of olive tree: the lintel and side posts were a fifth part of the wall.", "1 Kings 6:32": "The two doors also were of olive tree; and he carved upon them carvings of cherubims and palm trees and open flowers, and overlaid them with gold, and spread gold upon the cherubims, and upon the palm trees.", "1 Kings 6:33": "So also made he for the door of the temple posts of olive tree, a fourth part of the wall.", "1 Kings 6:34": "And the two doors were of fir tree: the two leaves of the one door were folding, and the two leaves of the other door were folding.", "1 Kings 6:35": "And he carved thereon cherubims and palm trees and open flowers: and covered them with gold fitted upon the carved work.", "1 Kings 6:36": "And he built the inner court with three rows of hewed stone, and a row of cedar beams.", "1 Kings 6:37": "In the fourth year was the foundation of the house of the LORD laid, in the month Zif:", "1 Kings 6:38": "And in the eleventh year, in the month Bul, which is the eighth month, was the house finished throughout all the parts thereof, and according to all the fashion of it. So was he seven years in building it.", "1 Kings 7:12": "And the great court round about was with three rows of hewed stones, and a row of cedar beams, both for the inner court of the house of the LORD, and for the porch of the house.", "1 Kings 7:13": "And king Solomon sent and fetched Hiram out of Tyre.", "1 Kings 7:14": "He was a widow’s son of the tribe of Naphtali, and his father was a man of Tyre, a worker in brass: and he was filled with wisdom, and understanding, and cunning to work all works in brass. And he came to king Solomon, and wrought all his work.", "1 Kings 7:15": "For he cast two pillars of brass, of eighteen cubits high apiece: and a line of twelve cubits did compass either of them about.", "1 Kings 7:16": "And he made two chapiters of molten brass, to set upon the tops of the pillars: the height of the one chapiter was five cubits, and the height of the other chapiter was five cubits:", "1 Kings 7:17": "And nets of checker work, and wreaths of chain work, for the chapiters which were upon the top of the pillars; seven for the one chapiter, and seven for the other chapiter.", "1 Kings 7:18": "And he made the pillars, and two rows round about upon the one network, to cover the chapiters that were upon the top, with pomegranates: and so did he for the other chapiter.", "1 Kings 7:19": "And the chapiters that were upon the top of the pillars were of lily work in the porch, four cubits.", "1 Kings 7:20": "And the chapiters upon the two pillars had pomegranates also above, over against the belly which was by the network: and the pomegranates were two hundred in rows round about upon the other chapiter.", "1 Kings 7:21": "And he set up the pillars in the porch of the temple: and he set up the right pillar, and called the name thereof Jachin: and he set up the left pillar, and he called the name thereof Boaz.", "1 Kings 7:22": "And upon the top of the pillars was lily work: so was the work of the pillars finished.", "1 Kings 7:23": "And he made a molten sea, ten cubits from the one brim to the other: it was round all about, and his height was five cubits: and a line of thirty cubits did compass it round about.", "1 Kings 7:24": "And under the brim of it round about there were knops compassing it, ten in a cubit, compassing the sea round about: the knops were cast in two rows, when it was cast.", "1 Kings 7:25": "It stood upon twelve oxen, three looking toward the north, and three looking toward the west, and three looking toward the south, and three looking toward the east: and the sea was set above upon them, and all their hinder parts were inward.", "1 Kings 7:26": "And it was an hand breadth thick, and the brim thereof was wrought like the brim of a cup, with flowers of lilies: it contained two thousand baths.", "1 Kings 7:27": "And he made ten bases of brass; four cubits was the length of one base, and four cubits the breadth thereof, and three cubits the height of it.", "1 Kings 7:28": "And the work of the bases was on this manner: they had borders, and the borders were between the ledges:", "1 Kings 7:29": "And on the borders that were between the ledges were lions, oxen, and cherubims: and upon the ledges there was a base above: and beneath the lions and oxen were certain additions made of thin work.", "1 Kings 7:30": "And every base had four brasen wheels, and plates of brass: and the four corners thereof had undersetters: under the laver were undersetters molten, at the side of every addition.", "1 Kings 7:31": "And the mouth of it within the chapiter and above was a cubit: but the mouth thereof was round after the work of the base, a cubit and an half: and also upon the mouth of it were gravings with their borders, foursquare, not round.", "1 Kings 7:32": "And under the borders were four wheels; and the axletrees of the wheels were joined to the base: and the height of a wheel was a cubit and a half a cubit.", "1 Kings 7:33": "And the work of the wheels was like the work of a chariot wheel: their axletrees, and their naves, and their felloes, and their spokes, were all molten.", "1 Kings 7:34": "And there were four undersetters to the four corners of one base: and the undersetters were of the very base itself.", "1 Kings 7:35": "And in the top of the base was there a round compass of half a cubit high: and on the top of the base the ledges thereof and the borders thereof were of the same.", "1 Kings 7:36": "For on the plates of the ledges thereof, and on the borders thereof, he graved cherubims, lions, and palm trees, according to the proportion of every one, and additions round about.", "1 Kings 7:37": "After this manner he made the ten bases: all of them had one casting, one measure, and one size.", "1 Kings 7:38": "Then made he ten lavers of brass: one laver contained forty baths: and every laver was four cubits: and upon every one of the ten bases one laver.", "1 Kings 7:39": "And he put five bases on the right side of the house, and five on the left side of the house: and he set the sea on the right side of the house eastward over against the south.", "1 Kings 7:40": "And Hiram made the lavers, and the shovels, and the basons. So Hiram made an end of doing all the work that he made king Solomon for the house of the LORD:", "1 Kings 7:41": "The two pillars, and the two bowls of the chapiters that were on the top of the two pillars; and the two networks, to cover the two bowls of the chapiters which were upon the top of the pillars;", "1 Kings 7:42": "And four hundred pomegranates for the two networks, even two rows of pomegranates for one network, to cover the two bowls of the chapiters that were upon the pillars;", "1 Kings 7:43": "And the ten bases, and ten lavers on the bases;", "1 Kings 7:44": "And one sea, and twelve oxen under the sea;", "1 Kings 7:45": "And the pots, and the shovels, and the basons: and all these vessels, which Hiram made to king Solomon for the house of the LORD, were of bright brass.", "1 Kings 7:46": "In the plain of Jordan did the king cast them, in the clay ground between Succoth and Zarthan.", "1 Kings 7:47": "And Solomon left all the vessels unweighed, because they were exceeding many: neither was the weight of the brass found out.", "1 Kings 7:48": "And Solomon made all the vessels that pertained unto the house of the LORD: the altar of gold, and the table of gold, whereupon the shewbread was,", "1 Kings 7:49": "And the candlesticks of pure gold, five on the right side, and five on the left, before the oracle, with the flowers, and the lamps, and the tongs of gold,", "1 Kings 7:50": "And the bowls, and the snuffers, and the basons, and the spoons, and the censers of pure gold; and the hinges of gold, both for the doors of the inner house, the most holy place, and for the doors of the house, to wit, of the temple.", "1 Kings 7:51": "So was ended all the work that king Solomon made for the house of the LORD. And Solomon brought in the things which David his father had dedicated; even the silver, and the gold, and the vessels, did he put among the treasures of the house of the LORD.", "1 Kings 8:1": "Then Solomon assembled the elders of Israel, and all the heads of the tribes, the chief of the fathers of the children of Israel, unto king Solomon in Jerusalem, that they might bring up the ark of the covenant of the LORD out of the city of David, which is Zion.", "1 Kings 8:2": "And all the men of Israel assembled themselves unto king Solomon at the feast in the month Ethanim, which is the seventh month.", "1 Kings 8:3": "And all the elders of Israel came, and the priests took up the ark.", "1 Kings 8:4": "And they brought up the ark of the LORD, and the tabernacle of the congregation, and all the holy vessels that were in the tabernacle, even those did the priests and the Levites bring up.", "1 Kings 8:5": "And king Solomon, and all the congregation of Israel, that were assembled unto him, were with him before the ark, sacrificing sheep and oxen, that could not be told nor numbered for multitude.", "1 Kings 8:6": "And the priests brought in the ark of the covenant of the LORD unto his place, into the oracle of the house, to the most holy place, even under the wings of the cherubims.", "1 Kings 8:7": "For the cherubims spread forth their two wings over the place of the ark, and the cherubims covered the ark and the staves thereof above.", "1 Kings 8:8": "And they drew out the staves, that the ends of the staves were seen out in the holy place before the oracle, and they were not seen without: and there they are unto this day.", "1 Kings 8:9": "There was nothing in the ark save the two tables of stone, which Moses put there at Horeb, when the LORD made a covenant with the children of Israel, when they came out of the land of Egypt.", "1 Kings 8:22": "And Solomon stood before the altar of the LORD in the presence of all the congregation of Israel, and spread forth his hands toward heaven:", "1 Kings 8:64": "The same day did the king hallow the middle of the court that was before the house of the LORD: for there he offered burnt offerings, and meat offerings, and the fat of the peace offerings: because the brasen altar that was before the LORD was too little to receive the burnt offerings, and meat offerings, and the fat of the peace offerings.", "1 Kings 9:25": "And three times in a year did Solomon offer burnt offerings and peace offerings upon the altar which he built unto the LORD, and he burnt incense upon the altar that was before the LORD. So he finished the house.", "2 Chronicles 3:1": "Then Solomon began to build the house of the LORD at Jerusalem in mount Moriah, where the LORD appeared unto David his father, in the place that David had prepared in the threshingfloor of Ornan the Jebusite.", "2 Chronicles 3:2": "And he began to build in the second day of the second month, in the fourth year of his reign.", "2 Chronicles 3:3": "Now these are the things wherein Solomon was instructed for the building of the house of God. The length by cubits after the first measure was threescore cubits, and the breadth twenty cubits.", "2 Chronicles 3:4": "And the porch that was in the front of the house, the length of it was according to the breadth of the house, twenty cubits, and the height was an hundred and twenty: and he overlaid it within with pure gold.", "2 Chronicles 3:5": "And the greater house he cieled with fir tree, which he overlaid with fine gold, and set thereon palm trees and chains.", "2 Chronicles 3:6": "And he garnished the house with precious stones for beauty: and the gold was gold of Parvaim.", "2 Chronicles 3:7": "He overlaid also the house, the beams, the posts, and the walls thereof, and the doors thereof, with gold; and graved cherubims on the walls.", "2 Chronicles 3:8": "And he made the most holy house, the length whereof was according to the breadth of the house, twenty cubits, and the breadth thereof twenty cubits: and he overlaid it with fine gold, amounting to six hundred talents.", "2 Chronicles 3:9": "And the weight of the nails was fifty shekels of gold. And he overlaid the upper chambers with gold.", "2 Chronicles 3:10": "And in the most holy house he made two cherubims of image work, and overlaid them with gold.", "2 Chronicles 3:11": "And the wings of the cherubims were twenty cubits long: one wing of the one cherub was five cubits, reaching to the wall of the house: and the other wing was likewise five cubits, reaching to the wing of the other cherub.", "2 Chronicles 3:12": "And one wing of the other cherub was five cubits, reaching to the wall of the house: and the other wing was five cubits also, joining to the wing of the other cherub.", "2 Chronicles 3:13": "The wings of these cherubims spread themselves forth twenty cubits: and they stood on their feet, and their faces were inward.", "2 Chronicles 3:14": "And he made the vail of blue, and purple, and crimson, and fine linen, and wrought cherubims thereon.", "2 Chronicles 3:15": "Also he made before the house two pillars of thirty and five cubits high, and the chapiter that was on the top of each of them was five cubits.", "2 Chronicles 3:16": "And he made chains, as in the oracle, and put them on the heads of the pillars; and made an hundred pomegranates, and put them on the chains.", "2 Chronicles 3:17": "And he reared up the pillars before the temple, one on the right hand, and the other on the left; and called the name of that on the right hand Jachin, and the name of that on the left Boaz.", "2 Chronicles 4:1": "Moreover he made an altar of brass, twenty cubits the length thereof, and twenty cubits the breadth thereof, and ten cubits the height thereof.", "2 Chronicles 4:2": "Also he made a molten sea of ten cubits from brim to brim, round in compass, and five cubits the height thereof; and a line of thirty cubits did compass it round about.", "2 Chronicles 4:3": "And under it was the similitude of oxen, which did compass it round about: ten in a cubit, compassing the sea round about. Two rows of oxen were cast, when it was cast.", "2 Chronicles 4:4": "It stood upon twelve oxen, three looking toward the north, and three looking toward the west, and three looking toward the south, and three looking toward the east: and the sea was set above upon them, and all their hinder parts were inward.", "2 Chronicles 4:5": "And the thickness of it was an handbreadth, and the brim of it like the work of the brim of a cup, with flowers of lilies; and it received and held three thousand baths.", "2 Chronicles 4:6": "He made also ten lavers, and put five on the right hand, and five on the left, to wash in them: such things as they offered for the burnt offering they washed in them; but the sea was for the priests to wash in.", "2 Chronicles 4:7": "And he made ten candlesticks of gold according to their form, and set them in the temple, five on the right hand, and five on the left.", "2 Chronicles 4:8": "He made also ten tables, and placed them in the temple, five on the right side, and five on the left. And he made an hundred basons of gold.", "2 Chronicles 4:9": "Furthermore he made the court of the priests, and the great court, and doors for the court, and overlaid the doors of them with brass.", "2 Chronicles 4:10": "And he set the sea on the right side of the east end, over against the south.", "2 Chronicles 4:11": "And Huram made the pots, and the shovels, and the basons. And Huram finished the work that he was to make for king Solomon for the house of God;", "2 Chronicles 4:12": "To wit, the two pillars, and the pommels, and the chapiters which were on the top of the two pillars, and the two wreaths to cover the two pommels of the chapiters which were on the top of the pillars;", "2 Chronicles 4:13": "And four hundred pomegranates on the two wreaths; two rows of pomegranates on each wreath, to cover the two pommels of the chapiters which were upon the pillars.", "2 Chronicles 4:14": "He made also bases, and lavers made he upon the bases;", "2 Chronicles 4:15": "One sea, and twelve oxen under it.", "2 Chronicles 4:16": "The pots also, and the shovels, and the fleshhooks, and all their instruments, did Huram his father make to king Solomon for the house of the LORD of bright brass.", "2 Chronicles 4:17": "In the plain of Jordan did the king cast them, in the clay ground between Succoth and Zeredathah.", "2 Chronicles 4:18": "Thus Solomon made all these vessels in great abundance: for the weight of the brass could not be found out.", "2 Chronicles 4:19": "And Solomon made all the vessels that were for the house of God, the golden altar also, and the tables whereon the shewbread was set;", "2 Chronicles 4:20": "Moreover the candlesticks with their lamps, that they should burn after the manner before the oracle, of pure gold;", "2 Chronicles 4:21": "And the flowers, and the lamps, and the tongs, made he of gold, and that perfect gold;", "2 Chronicles 4:22": "And the snuffers, and the basons, and the spoons, and the censers, of pure gold: and the entry of the house, the inner doors thereof for the most holy place, and the doors of the house of the temple, were of gold.", "2 Chronicles 5:7": "And the priests brought in the ark of the covenant of the LORD unto his place, to the oracle of the house, into the most holy place, even under the wings of the cherubims:", "2 Chronicles 5:8": "For the cherubims spread forth their wings over the place of the ark, and the cherubims covered the ark and the staves thereof above.", "2 Chronicles 5:9": "And they drew out the staves of the ark, that the ends of the staves were seen from the ark before the oracle; but they were not seen without. And there it is unto this day.", "2 Chronicles 5:10": "There was nothing in the ark save the two tables which Moses put therein at Horeb, when the LORD made a covenant with the children of Israel, when they came out of Egypt.", "2 Chronicles 6:13": "For Solomon had made a brasen scaffold, of five cubits long, and five cubits broad, and three cubits high, and had set it in the midst of the court: and upon it he stood, and kneeled down upon his knees before all the congregation of Israel, and spread forth his hands toward heaven,", "Exodus 20:26": "Neither shalt thou go up by steps unto mine altar, that thy nakedness be not discovered thereon.", "Exodus 25:10": "And they shall make an ark of shittim wood: two cubits and a half shall be the length thereof, and a cubit and a half the breadth thereof, and a cubit and a half the height thereof.", "Exodus 25:11": "And thou shalt overlay it with pure gold, within and without shalt thou overlay it, and shalt make upon it a crown of gold round about.", "Exodus 25:12": "And thou shalt cast four rings of gold for it, and put them in the four corners thereof; and two rings shall be in the one side of it, and two rings in the other side of it.", "Exodus 25:13": "And thou shalt make staves of shittim wood, and overlay them with gold.", "Exodus 25:14": "And thou shalt put the staves into the rings by the sides of the ark, that the ark may be borne with them.", "Exodus 25:15": "The staves shall be in the rings of the ark: they shall not be taken from it.", "Exodus 25:16": "And thou shalt put into the ark the testimony which I shall give thee.", "Exodus 25:17": "And thou shalt make a mercy seat of pure gold: two cubits and a half shall be the length thereof, and a cubit and a half the breadth thereof.", "Exodus 25:18": "And thou shalt make two cherubims of gold, of beaten work shalt thou make them, in the two ends of the mercy seat.", "Exodus 25:19": "And make one cherub on the one end, and the other cherub on the other end: even of the mercy seat shall ye make the cherubims on the two ends thereof.", "Exodus 25:20": "And the cherubim shall stretch forth their wings on high, covering the mercy seat with their wings, and their faces shall look one to another; toward the mercy seat shall the faces of the cherubims be.", "Exodus 25:21": "And thou shalt put the mercy seat above upon the ark; and in the ark thou shalt put the testimony that I shall give thee.", "Exodus 25:22": "And there I will meet with thee, and I will commune with thee from above the mercy seat, from between the two cherubims which are upon the ark of the testimony, of all things which I will give thee in commandment unto the children of Israel.", "Exodus 25:23": "Thou shalt also make a table of shittim wood: two cubits shall be the length thereof, and a cubit the breadth thereof, and a cubit and a half the height thereof.", "Exodus 25:24": "And thou shalt overlay it with pure gold, and make thereto a crown of gold round about.", "Exodus 25:25": "And thou shalt make unto it a border of an hand breadth round about, and thou shalt make a golden crown to the border thereof round about.", "Exodus 25:26": "And thou shalt make for it four rings of gold, and put the rings in the four corners that are on the four feet thereof.", "Exodus 25:27": "Over against the border shall the rings be for places of the staves to bear the table.", "Exodus 25:28": "And thou shalt make the staves of shittim wood, and overlay them with gold, that the table may be borne with them.", "Exodus 25:29": "And thou shalt make the dishes thereof, and spoons thereof, and covers thereof, and bowls thereof, to cover withal: of pure gold shalt thou make them.", "Exodus 25:30": "And thou shalt set upon the table shewbread before me alway.", "Exodus 25:31": "And thou shalt make a candlestick of pure gold: of beaten work shall the candlestick be made: his shaft, and his branches, his bowls, his knops, and his flowers, shall be of the same.", "Exodus 25:32": "And six branches shall come out of the sides of it; three branches of the candlestick out of the one side, and three branches of the candlestick out of the other side:", "Exodus 25:33": "Three bowls made like unto almonds, with a knop and a flower in one branch; and three bowls made like almonds in the other branch, with a knop and a flower: so in the six branches that come out of the candlestick.", "Exodus 25:34": "And in the candlestick shall be four bowls made like unto almonds, with their knops and their flowers.", "Exodus 25:35": "And there shall be a knop under two branches of the same, and a knop under two branches of the same, and a knop under two branches of the same, according to the six branches that proceed out of the candlestick.", "Exodus 25:36": "Their knops and their branches shall be of the same: all it shall be one beaten work of pure gold.", "Exodus 25:37": "And thou shalt make the seven lamps thereof: and they shall light the lamps thereof, that they may give light over against it.", "Exodus 25:38": "And the tongs thereof, and the snuffdishes thereof, shall be of pure gold.", "Exodus 25:39": "Of a talent of pure gold shall he make it, with all these vessels.", "Exodus 25:40": "And look that thou make them after their pattern, which was shewed thee in the mount.", "Exodus 30:1": "And thou shalt make an altar to burn incense upon: of shittim wood shalt thou make it.", "Exodus 30:2": "A cubit shall be the length thereof, and a cubit the breadth thereof; foursquare shall it be: and two cubits shall be the height thereof: the horns thereof shall be of the same.", "Exodus 30:3": "And thou shalt overlay it with pure gold, the top thereof, and the sides thereof round about, and the horns thereof; and thou shalt make unto it a crown of gold round about.", "Jeremiah 52:21": "And concerning the pillars, the height of one pillar was eighteen cubits; and a fillet of twelve cubits did compass it; and the thickness thereof was four fingers: it was hollow.", "Jeremiah 52:22": "And a chapiter of brass was upon it; and the height of one chapiter was five cubits, with network and pomegranates upon the chapiters round about, all of brass. The second pillar also and the pomegranates were like unto these.", "Jeremiah 52:23": "And there were ninety and six pomegranates on a side; and all the pomegranates upon the network were an hundred round about.", "2 Kings 25:17": "The height of the one pillar was eighteen cubits, and the chapiter upon it was brass: and the height of the chapiter three cubits; and the wreathen work, and pomegranates upon the chapiter round about, all of brass: and like unto these had the second pillar with wreathen work.", "Ezekiel 8:16": "And he brought me into the inner court of the LORD’S house, and, behold, at the door of the temple of the LORD, between the porch and the altar, were about five and twenty men, with their backs toward the temple of the LORD, and their faces toward the east; and they worshipped the sun toward the east.", "Ezekiel 40:5": "And behold a wall on the outside of the house round about, and in the man’s hand a measuring reed of six cubits long by the cubit and an hand breadth: so he measured the breadth of the building, one reed; and the height, one reed.", "Ezekiel 40:47": "So he measured the court, an hundred cubits long, and an hundred cubits broad, foursquare; and the altar that was before the house.", "Ezekiel 41:5": "After he measured the wall of the house, six cubits; and the breadth of every side chamber, four cubits, round about the house on every side.", "Ezekiel 41:6": "And the side chambers were three, one over another, and thirty in order; and they entered into the wall which was of the house for the side chambers round about, that they might have hold, but they had not hold in the wall of the house.", "Ezekiel 43:13": "And these are the measures of the altar after the cubits: The cubit is a cubit and an hand breadth; even the bottom shall be a cubit, and the breadth a cubit, and the border thereof by the edge thereof round about shall be a span: and this shall be the higher place of the altar.", "Ezekiel 43:14": "And from the bottom upon the ground even to the lower settle shall be two cubits, and the breadth one cubit; and from the lesser settle even to the greater settle shall be four cubits, and the breadth one cubit.", "Ezekiel 43:15": "So the altar shall be four cubits; and from the altar and upward shall be four horns.", "Ezekiel 43:16": "And the altar shall be twelve cubits long, twelve broad, square in the four squares thereof.", "Ezekiel 43:17": "And the settle shall be fourteen cubits long and fourteen broad in the four squares thereof; and the border about it shall be half a cubit; and the bottom thereof shall be a cubit about; and his stairs shall look toward the east."}</script>
+<script>
+'use strict';
+/* =====================================================================
+   DATA: verse store (KJV, verbatim), models registry, options
+   ===================================================================== */
+const KJV = JSON.parse(document.getElementById('kjv').textContent);
+
+const MODELS = {
+  solomon:    { name:"Solomon's Temple", ready:true,  sources:'1 Kings 6–8; 2 Chronicles 3–4' },
+  tabernacle: { name:'Tabernacle',       ready:false, sources:'Exodus 25–31; 35–40' },
+  ezekiel:    { name:"Ezekiel's Temple", ready:false, sources:'Ezekiel 40–48' }
+};
+
+const CUBITS = { standard:0.45, long:0.525 };
+const S = { model:'solomon', cubit:'standard', C:0.45, porchH:20, third:false, cut:false, blue:false, dims:false,
+            interp:false, verse:true, lamp:true, sound:false, run:false };
+
+function expandRef(ref){
+  const m = ref.match(/^(.+) (\d+):(\d+)(?:-(\d+))?$/);
+  if(!m) return [ref];
+  const out=[]; for(let v=+m[3]; v<=+(m[4]||m[3]); v++) out.push(`${m[1]} ${m[2]}:${v}`);
+  return out;
+}
+
+/* =====================================================================
+   RENDERER / SCENE
+   ===================================================================== */
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 1.75));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const MAXANISO = renderer.capabilities.getMaxAnisotropy();
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xcdd6dc);
+scene.fog = new THREE.Fog(0xd9d6cc, 180, 900);
+const cam = new THREE.PerspectiveCamera(70, 1, 0.05, 2500);
+cam.rotation.order = 'YXZ';
+const ortho = new THREE.OrthographicCamera(-1,1,1,-1,0.1,3000);
+const root = new THREE.Group(); scene.add(root);           // everything built in cubits, scaled by S.C
+
+let seed = 11; const rnd = () => (seed = (seed*16807) % 2147483647, (seed-1)/2147483646);
+
+/* ---------- canvas textures ---------- */
+function mkCanvas(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
+function tex(c, srgb=true){ const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; if(srgb) t.encoding=THREE.sRGBEncoding; t.anisotropy=MAXANISO; return t; }
+function colorize(src, stops){
+  const w=src.width,h=src.height, out=mkCanvas(w,h), o=out.getContext('2d');
+  const d=src.getContext('2d').getImageData(0,0,w,h), px=d.data;
+  const lut=new Uint8ClampedArray(256*3);
+  for(let v=0; v<256; v++){ const t=v/255; let i=0; while(i<stops.length-2 && t>stops[i+1][0]) i++;
+    const [t0,c0]=stops[i],[t1,c1]=stops[i+1], k=Math.min(1,Math.max(0,(t-t0)/(t1-t0)));
+    for(let j=0;j<3;j++) lut[v*3+j]=c0[j]+(c1[j]-c0[j])*k; }
+  for(let i=0;i<px.length;i+=4){ const v=px[i]; px[i]=lut[v*3]; px[i+1]=lut[v*3+1]; px[i+2]=lut[v*3+2]; px[i+3]=255; }
+  o.putImageData(d,0,0); return out;
+}
+const GOLD_STOPS=[[0,[60,38,10]],[.42,[150,108,36]],[.7,[214,172,82]],[1,[255,232,160]]];
+const BRONZE_STOPS=[[0,[38,22,10]],[.5,[128,82,44]],[1,[214,160,104]]];
+
+/* motif painters (grey height fields: light = raised) */
+function palm(g,x,y,w,h){
+  const cx=x+w/2, top=y+h*.3, bot=y+h;
+  g.fillStyle='#d8d8d8'; g.beginPath(); g.moveTo(cx-w*.07,bot); g.lineTo(cx-w*.035,top); g.lineTo(cx+w*.035,top); g.lineTo(cx+w*.07,bot); g.closePath(); g.fill();
+  g.strokeStyle='#5a5a5a'; g.lineWidth=Math.max(1,w*.012);
+  for(let yy=top+h*.03; yy<bot; yy+=h*.045){ g.beginPath(); g.moveTo(cx-w*.06,yy); g.lineTo(cx,yy-h*.02); g.lineTo(cx+w*.06,yy); g.stroke(); }
+  g.lineCap='round';
+  for(let i=0;i<9;i++){
+    const a=-Math.PI*.97 + i*(Math.PI*.94/8), R=w*.46;
+    const ex=cx+Math.cos(a)*R, ey=top+Math.sin(a)*R*.55+R*.42;
+    g.strokeStyle='#e2e2e2'; g.lineWidth=w*.05;
+    g.beginPath(); g.moveTo(cx,top); g.quadraticCurveTo(cx+Math.cos(a)*R*.55, top+Math.sin(a)*R*.95, ex, ey); g.stroke();
+    g.strokeStyle='#707070'; g.lineWidth=w*.008; g.stroke();
+  }
+  g.fillStyle='#bcbcbc'; for(const s of [-1,1]){ g.beginPath(); g.arc(cx+s*w*.06, top+h*.04, w*.035, 0, 7); g.fill(); }
+}
+function flower(g,cx,cy,r){
+  g.fillStyle='#dedede'; g.strokeStyle='#585858'; g.lineWidth=Math.max(1,r*.06);
+  for(let i=0;i<8;i++){ g.save(); g.translate(cx,cy); g.rotate(i*Math.PI/4); g.beginPath(); g.ellipse(0,-r*.55,r*.22,r*.45,0,0,7); g.fill(); g.stroke(); g.restore(); }
+  g.fillStyle='#f2f2f2'; g.beginPath(); g.arc(cx,cy,r*.22,0,7); g.fill(); g.stroke();
+}
+function cherubMotif(g,x,y,w,h){
+  const cx=x+w/2, sh=y+h*.36;
+  g.fillStyle='#d4d4d4'; g.strokeStyle='#555'; g.lineWidth=Math.max(1,w*.01);
+  for(const s of [-1,1]){
+    g.beginPath(); g.moveTo(cx+s*w*.07, sh);
+    g.quadraticCurveTo(cx+s*w*.52, y+h*.02, cx+s*w*.47, y+h*.02);
+    g.quadraticCurveTo(cx+s*w*.4, y+h*.33, cx+s*w*.1, sh+h*.2); g.closePath(); g.fill(); g.stroke();
+    for(let k=1;k<6;k++){ g.beginPath(); g.moveTo(cx+s*w*.1, sh+h*.02*k); g.lineTo(cx+s*w*(.1+.07*k), y+h*(.3-.045*k)); g.stroke(); }
+  }
+  g.fillStyle='#e6e6e6';
+  g.beginPath(); g.moveTo(cx-w*.08,sh); g.lineTo(cx+w*.08,sh); g.lineTo(cx+w*.13,y+h*.93); g.lineTo(cx-w*.13,y+h*.93); g.closePath(); g.fill(); g.stroke();
+  for(let k=1;k<4;k++){ g.beginPath(); g.moveTo(cx+(k-2)*w*.035, sh+h*.08); g.lineTo(cx+(k-2)*w*.05, y+h*.92); g.stroke(); }
+  g.beginPath(); g.arc(cx, sh-h*.075, w*.075, 0, 7); g.fill(); g.stroke();
+  g.beginPath(); g.ellipse(cx-w*.05,y+h*.955,w*.05,h*.022,0,0,7); g.fill(); g.beginPath(); g.ellipse(cx+w*.05,y+h*.955,w*.05,h*.022,0,0,7); g.fill();
+}
+function lionMotif(g,x,y,w,h){
+  g.fillStyle='#dcdcdc'; g.strokeStyle='#555'; g.lineWidth=2;
+  g.beginPath(); g.ellipse(x+w*.5,y+h*.52,w*.3,h*.16,0,0,7); g.fill(); g.stroke();
+  for(const lx of [.28,.4,.62,.72]){ g.fillRect(x+w*lx-3,y+h*.6,7,h*.3); }
+  g.beginPath(); g.arc(x+w*.8,y+h*.4,h*.17,0,7); g.fill(); g.stroke();
+  g.beginPath(); g.arc(x+w*.84,y+h*.42,h*.09,0,7); g.stroke();
+  g.beginPath(); g.moveTo(x+w*.2,y+h*.5); g.quadraticCurveTo(x+w*.05,y+h*.3,x+w*.12,y+h*.2); g.stroke();
+}
+function oxMotif(g,x,y,w,h){
+  g.fillStyle='#dcdcdc'; g.strokeStyle='#555'; g.lineWidth=2;
+  g.fillRect(x+w*.18,y+h*.38,w*.58,h*.26); g.strokeRect(x+w*.18,y+h*.38,w*.58,h*.26);
+  for(const lx of [.22,.32,.62,.7]) g.fillRect(x+w*lx,y+h*.62,7,h*.28);
+  g.fillRect(x+w*.74,y+h*.3,w*.14,h*.2);
+  g.beginPath(); g.moveTo(x+w*.76,y+h*.3); g.quadraticCurveTo(x+w*.7,y+h*.12,x+w*.8,y+h*.14); g.moveTo(x+w*.86,y+h*.3); g.quadraticCurveTo(x+w*.94,y+h*.12,x+w*.86,y+h*.12); g.stroke();
+}
+
+function makeTextures(){
+  const T={};
+  // stone: 512px = 6 cubits, 4 courses
+  { const c=mkCanvas(512,512), g=c.getContext('2d'), b=mkCanvas(512,512), gb=b.getContext('2d');
+    g.fillStyle='#8a7d62'; g.fillRect(0,0,512,512); gb.fillStyle='#303030'; gb.fillRect(0,0,512,512);
+    for(let r=0;r<4;r++){ let x=-rnd()*120; while(x<512){ const w=120+rnd()*190, l=196+rnd()*26|0;
+      for(const off of [0,512]){ g.fillStyle=`rgb(${l},${l-10},${l-36})`; g.fillRect(x+3-off,r*128+3,w-6,122);
+        gb.fillStyle='#c8c8c8'; gb.fillRect(x+3-off,r*128+3,w-6,122); gb.fillStyle='#e0e0e0'; gb.fillRect(x+10-off,r*128+10,w-20,108);}
+      x+=w; } }
+    for(let i=0;i<14000;i++){ const v=rnd()*60|0; g.fillStyle=`rgba(${80+v},${70+v},${50+v},.09)`; g.fillRect(rnd()*512,rnd()*512,2,2); }
+    T.stone=tex(c); T.stoneB=tex(b,false); }
+  // great stones (foundation): 512 = 8 cubits
+  { const c=mkCanvas(512,256), g=c.getContext('2d');
+    g.fillStyle='#7b6f57'; g.fillRect(0,0,512,256);
+    for(let r=0;r<2;r++){ let x=-rnd()*200; while(x<512){ const w=220+rnd()*200, l=180+rnd()*24|0; for(const off of [0,512]){ g.fillStyle=`rgb(${l},${l-12},${l-40})`; g.fillRect(x+4-off,r*128+4,w-8,120);} x+=w; } }
+    for(let i=0;i<8000;i++){ const v=rnd()*50|0; g.fillStyle=`rgba(${70+v},${60+v},${40+v},.1)`; g.fillRect(rnd()*512,rnd()*256,2,2); }
+    T.great=tex(c); }
+  // cedar boards: 256 = 2 cubits wide, 512 = 4 tall
+  { const c=mkCanvas(256,512), g=c.getContext('2d');
+    for(let i=0;i<4;i++){ const l=rnd()*24|0; g.fillStyle=`rgb(${128+l},${70+l/2},${42})`; g.fillRect(i*64,0,64,512);
+      for(let k=0;k<22;k++){ g.strokeStyle=`rgba(60,28,12,${.15+rnd()*.25})`; g.lineWidth=1+rnd()*1.5; g.beginPath(); let xx=i*64+rnd()*64; g.moveTo(xx,0); for(let y=0;y<=512;y+=32){ xx+= (rnd()-.5)*5; g.lineTo(xx,y);} g.stroke(); }
+      g.fillStyle='rgba(30,14,6,.7)'; g.fillRect(i*64,0,2,512); }
+    T.cedar=tex(c); }
+  // carved gold wall: 1024 = 10 x 10 cubits. band of open flowers, register of cherub|palm x2, band of flowers
+  { const c=mkCanvas(1024,1024), g=c.getContext('2d');
+    g.fillStyle='#8a8a8a'; g.fillRect(0,0,1024,1024);
+    g.fillStyle='#6a6a6a'; g.fillRect(0,0,1024,6); g.fillRect(0,1018,1024,6);
+    for(const by of [0, 922]){ g.fillStyle='#9a9a9a'; g.fillRect(0,by+8,1024,92); for(let i=0;i<10;i++) flower(g, i*102.4+51.2, by+54, 38); }
+    for(let i=0;i<4;i++){ const x=i*256, y=112, h=800;
+      g.strokeStyle='#5c5c5c'; g.lineWidth=4; g.strokeRect(x+8,y,240,h);
+      if(i%2===0) cherubMotif(g,x+22,y+30,212,h-60); else palm(g,x+26,y+24,204,h-40); }
+    T.carvedB=tex(c,false); T.carved=tex(colorize(c,GOLD_STOPS)); }
+  // gold floor planks: 512 = 4 cubits
+  { const c=mkCanvas(512,512), g=c.getContext('2d'); g.fillStyle='#9a9a9a'; g.fillRect(0,0,512,512);
+    for(let r=0;r<8;r++){ g.fillStyle=`rgb(${150+rnd()*40|0},0,0)`; let x=-rnd()*200; while(x<512){ const w=180+rnd()*260; const v=150+rnd()*50|0; g.fillStyle=`rgb(${v},${v},${v})`; g.fillRect(x+2,r*64+2,w-4,60); g.fillRect(x+2-512,r*64+2,w-4,60); x+=w; } }
+    T.floor=tex(colorize(c,GOLD_STOPS)); }
+  // ceiling: palms in roundels and chains (2 Chr 3:5), gems (3:6). 512 = 5 cubits
+  { const c=mkCanvas(512,512), g=c.getContext('2d'); g.fillStyle='#8e8e8e'; g.fillRect(0,0,512,512);
+    g.strokeStyle='#dadada'; g.lineWidth=5;
+    for(let i=0;i<=512;i+=16){ for(const [x,y,dx,dy] of [[i,0,0,1],[0,i,1,0]]){} }
+    for(let k=0;k<2;k++) for(let i=0;i<32;i++){ const a=k?[i*16+8,256]:[256,i*16+8]; g.beginPath(); g.ellipse(a[0],a[1],k?7:4,k?4:7,0,0,7); g.stroke(); }
+    for(const [x,y] of [[128,128],[384,128],[128,384],[384,384]]){ g.strokeStyle='#5a5a5a'; g.lineWidth=4; g.beginPath(); g.arc(x,y,100,0,7); g.stroke(); palm(g,x-70,y-86,140,172); }
+    const col=colorize(c,GOLD_STOPS), cg=col.getContext('2d');
+    for(const [x,y,h] of [[256,256,'#3b7fd0'],[0,0,'#c2283c'],[512,0,'#c2283c'],[0,512,'#c2283c'],[512,512,'#c2283c'],[256,0,'#2f9b6a'],[0,256,'#2f9b6a'],[512,256,'#2f9b6a'],[256,512,'#2f9b6a']]){ cg.fillStyle=h; cg.beginPath(); cg.arc(x,y,13,0,7); cg.fill(); cg.fillStyle='rgba(255,255,255,.55)'; cg.beginPath(); cg.arc(x-4,y-4,4,0,7); cg.fill(); }
+    T.ceiling=tex(col); }
+  // veil: blue, purple, crimson, fine linen, cherubims wrought
+  { const c=mkCanvas(512,1024), g=c.getContext('2d');
+    const bands=['#2a3a86','#5b2a78','#9a1f33','#2a3a86','#5b2a78','#9a1f33'];
+    for(let i=0;i<6;i++){ g.fillStyle=bands[i]; g.fillRect(0,i*170.7,512,171); }
+    for(let y=0;y<1024;y+=3){ g.fillStyle=`rgba(255,255,255,${.03+rnd()*.03})`; g.fillRect(0,y,512,1); }
+    g.globalAlpha=.55; const tmp=mkCanvas(256,420), tg=tmp.getContext('2d'); cherubMotif(tg,0,0,256,420);
+    const d=tg.getImageData(0,0,256,420); for(let i=0;i<d.data.length;i+=4){ const v=d.data[i]; const on=v>150; d.data[i]=236; d.data[i+1]=226; d.data[i+2]=200; d.data[i+3]=on?255:0; } tg.putImageData(d,0,0);
+    g.drawImage(tmp,128,90); g.drawImage(tmp,128,560); g.globalAlpha=1;
+    T.veil=tex(c); }
+  // bronze relief panel (bases): lions, oxen, cherubims, palm trees
+  { const c=mkCanvas(512,512), g=c.getContext('2d'); g.fillStyle='#808080'; g.fillRect(0,0,512,512);
+    g.fillStyle='#b0b0b0'; g.fillRect(0,0,512,40); g.fillRect(0,472,512,40); g.fillRect(0,0,40,512); g.fillRect(472,0,40,512);
+    for(let i=0;i<8;i++){ g.fillStyle='#d0d0d0'; g.beginPath(); g.arc(20+i*67,20,9,0,7); g.fill(); g.beginPath(); g.arc(20+i*67,492,9,0,7); g.fill(); }
+    lionMotif(g,50,60,200,190); oxMotif(g,262,60,200,190); cherubMotif(g,70,250,170,215); palm(g,300,260,140,205);
+    T.relief=tex(colorize(c,BRONZE_STOPS)); T.reliefB=tex(c,false); }
+  // network (checker work) alpha
+  { const c=mkCanvas(256,256), g=c.getContext('2d'); g.fillStyle='#000'; g.fillRect(0,0,256,256); g.strokeStyle='#fff'; g.lineWidth=9;
+    for(let i=-256;i<512;i+=42){ g.beginPath(); g.moveTo(i,0); g.lineTo(i+256,256); g.stroke(); g.beginPath(); g.moveTo(i,256); g.lineTo(i+256,0); g.stroke(); }
+    T.net=tex(c,false); T.net.repeat.set(10,2); }
+  // ground: court (8 cubits)
+  { const c=mkCanvas(512,512), g=c.getContext('2d'); g.fillStyle='#9c8b6c'; g.fillRect(0,0,512,512);
+    for(let i=0;i<30000;i++){ const v=rnd()*70|0; g.fillStyle=`rgba(${90+v},${75+v},${52+v},.2)`; g.fillRect(rnd()*512,rnd()*512,2+rnd()*3,2+rnd()*3); }
+    T.ground=tex(c); }
+  return T;
+}
+
+/* ---------- environment & lights ---------- */
+function buildSkyAndEnv(){
+  const sc=mkCanvas(4,512), g=sc.getContext('2d'), gr=g.createLinearGradient(0,0,0,512);
+  gr.addColorStop(0,'#6f93b4'); gr.addColorStop(.42,'#b9cad6'); gr.addColorStop(.5,'#eadfc8'); gr.addColorStop(.52,'#a99576'); gr.addColorStop(1,'#6b5b43');
+  g.fillStyle=gr; g.fillRect(0,0,4,512);
+  const skyT=tex(sc); const sky=new THREE.Mesh(new THREE.SphereGeometry(2000,32,16), new THREE.MeshBasicMaterial({map:skyT, side:THREE.BackSide, fog:false, depthWrite:false}));
+  sky.renderOrder=-1; scene.add(sky);
+  const ec=mkCanvas(512,256), eg=ec.getContext('2d'), eg2=eg.createLinearGradient(0,0,0,256);
+  eg2.addColorStop(0,'#86a6c4'); eg2.addColorStop(.45,'#f3e6cc'); eg2.addColorStop(.5,'#fff3da'); eg2.addColorStop(.56,'#8f7a5a'); eg2.addColorStop(1,'#3c3124');
+  eg.fillStyle=eg2; eg.fillRect(0,0,512,256);
+  eg.fillStyle='rgba(255,250,230,.9)'; eg.beginPath(); eg.arc(380,70,22,0,7); eg.fill();
+  const et=new THREE.CanvasTexture(ec); et.encoding=THREE.sRGBEncoding; et.mapping=THREE.EquirectangularReflectionMapping;
+  const pm=new THREE.PMREMGenerator(renderer); scene.environment=pm.fromEquirectangular(et).texture; pm.dispose();
+}
+const hemi=new THREE.HemisphereLight(0xe3ebf5, 0x6e583b, .55); scene.add(hemi);
+const SUN_DIR=new THREE.Vector3(.7,1.5,.6).normalize();
+const sun=new THREE.DirectionalLight(0xfff0d6, 2.0); sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048); sun.shadow.bias=-0.0004; sun.shadow.normalBias=0.06;
+scene.add(sun); scene.add(sun.target);
+function placeSun(){ const c=new THREE.Vector3(30*S.C,0,0); sun.target.position.copy(c); sun.position.copy(c).addScaledVector(SUN_DIR,160);
+  const r=70*(S.C/0.45)+10; Object.assign(sun.shadow.camera,{left:-r,right:r,top:r,bottom:-r,near:1,far:400}); sun.shadow.camera.updateProjectionMatrix(); }
+const lampLight=new THREE.PointLight(0xffc98a, 0, 14, 2); scene.add(lampLight);
+
+/* =====================================================================
+   BUILD CONTEXT: all coordinates in cubits.  x = east(+), z = south(+), y = up.
+   ===================================================================== */
+let T, M;
+let B = null;                   // current element being built
+const solids=[], occluders=[], pickables=[], roofs=[], fades=[], interpMeshes=[], lights=[], flames=[];
+const elGroups={}, elBoxes={};
+
+function mat(o, tile){ const m=new THREE.MeshStandardMaterial(o); m.userData.tile=tile||[4,4]; return m; }
+function makeMaterials(){
+  const G={metalness:1, roughness:.26, envMapIntensity:1};
+  M={
+    stone: mat({map:T.stone, bumpMap:T.stoneB, bumpScale:.5, roughness:.92, color:0xffffff},[6,6]),
+    great: mat({map:T.great, roughness:.95},[8,4]),
+    cedar: mat({map:T.cedar, roughness:.72},[2,4]),
+    carved: mat({...G, map:T.carved, bumpMap:T.carvedB, bumpScale:.9, roughness:.3},[10,10]),
+    gold: mat({...G, color:0xe8c46a},[4,4]),
+    goldFloor: mat({...G, map:T.floor, roughness:.34},[4,4]),
+    ceiling: mat({...G, map:T.ceiling, roughness:.32},[5,5]),
+    oracleCeil: mat({...G, color:0xe0bb62, transparent:true, opacity:1},[4,4]),
+    bronze: mat({color:0x8f5f33, metalness:1, roughness:.4},[4,4]),
+    bronzeDark: mat({color:0x7a5230, metalness:1, roughness:.45},[4,4]),
+    relief: mat({map:T.relief, bumpMap:T.reliefB, bumpScale:.8, metalness:1, roughness:.38},[4,3]),
+    net: new THREE.MeshStandardMaterial({color:0xb88550, metalness:1, roughness:.35, alphaMap:T.net, transparent:true, alphaTest:.5, side:THREE.DoubleSide}),
+    veil: mat({map:T.veil, roughness:1, side:THREE.DoubleSide},[5.2,10]),
+    ground: mat({map:T.ground, roughness:1},[8,8]),
+    water: new THREE.MeshStandardMaterial({color:0x4f6f73, metalness:.2, roughness:.08, transparent:true, opacity:.88}),
+    dark: new THREE.MeshStandardMaterial({color:0x17110b, roughness:1}),
+    lattice: new THREE.MeshBasicMaterial({color:0xffefcc}),
+    flame: new THREE.MeshBasicMaterial({color:0xffc56a}),
+    ember: new THREE.MeshBasicMaterial({color:0xff7a2a}),
+    bread: mat({color:0xd6ad73, roughness:.9}),
+    wood: mat({color:0x5b3a22, roughness:.85}),
+    stoneRamp: mat({map:T.stone, roughness:.95},[6,6]),
+    hill: new THREE.MeshStandardMaterial({color:0x7d7055, roughness:1, flatShading:true})
+  };
+  M.stoneRamp.userData.tile=[6,6];
+}
+
+function worldUV(g,w,h,d,tu,tv){
+  const uv=g.attributes.uv, dims=[[d,h],[d,h],[w,d],[w,d],[w,h],[w,h]];
+  for(let f=0;f<6;f++) for(let k=0;k<4;k++){ const i=f*4+k; uv.setXY(i, uv.getX(i)*dims[f][0]/tu, uv.getY(i)*dims[f][1]/tv); }
+  uv.needsUpdate=true;
+}
+function solid(X,Y,Z){ solids.push({x0:X[0],x1:X[1],y0:Y[0],y1:Y[1],z0:Z[0],z1:Z[1],el:B&&B.id}); }
+function add(m, o={}){ m.castShadow=o.cast!==false; m.receiveShadow=true; (o.parent||B.g).add(m);
+  if(o.I) interpMeshes.push(m); if(o.roof) roofs.push(m); if(o.fade) fades.push(m); return m; }
+function box(X,Y,Z,material,o={}){
+  const w=X[1]-X[0], h=Y[1]-Y[0], d=Z[1]-Z[0], g=new THREE.BoxGeometry(w,h,d), t=material.userData.tile||[4,4];
+  worldUV(g,w,h,d,t[0],t[1]);
+  const m=new THREE.Mesh(g,material); m.position.set((X[0]+X[1])/2,(Y[0]+Y[1])/2,(Z[0]+Z[1])/2);
+  add(m,o); if(o.solid!==false){ solid(X,Y,Z); if(o.occ!==false) occluders.push(m); }
+  return m;
+}
+const mz = r => [-r[1],-r[0]];                     // mirror a z-range to the north side
+function mesh(geo, material, x,y,z, o={}){ const m=new THREE.Mesh(geo,material); m.position.set(x,y,z); return add(m,o); }
+function lathe(pts, seg, material, x,y,z, o={}){ return mesh(new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])), seg), material, x,y,z, o); }
+function light(color, intensity, distM, x,y,z){ const l=new THREE.PointLight(color,intensity,distM,2); l.position.set(x,y,z); B.g.add(l); lights.push(l); return l; }
+
+/* ---------- reusable figures ---------- */
+function makeWing(len, chord){
+  const s=new THREE.Shape(); s.moveTo(0,chord*.45);
+  s.quadraticCurveTo(len*.5,chord*.8,len,chord*.62); s.lineTo(len,chord*.3);
+  const n=8; for(let i=0;i<n;i++){ const u0=len-i*len/n, u1=u0-len/n, v1=-chord*.12-(1-u1/len)*chord*.45; s.quadraticCurveTo((u0+u1)/2, v1-chord*.2, u1, v1); }
+  s.lineTo(0,-chord*.55); s.closePath();
+  const g=new THREE.ExtrudeGeometry(s,{depth:chord*.1, bevelEnabled:false}); g.translate(0,0,-chord*.05); return g;
+}
+function makeCherub(h, wingLen, material, faceDir){ // origin at feet; faces +x before rotation
+  const grp=new THREE.Group(), k=h/10;
+  const robe=new THREE.Mesh(new THREE.LatheGeometry([[0,0],[1.15,0],[1.25,.35],[1.05,3],[.85,6],[.98,7.3],[.72,8.1],[0,8.15]].map(p=>new THREE.Vector2(p[0]*k,p[1]*k)),28), material); grp.add(robe);
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.32*k,.38*k,.5*k,16), material); neck.position.y=8.3*k; grp.add(neck);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.72*k,24,16), material); head.scale.set(1,1.15,1); head.position.y=9.05*k; grp.add(head);
+  for(const s of [-1,1]){ const f=new THREE.Mesh(new THREE.BoxGeometry(.9*k,.3*k,.45*k), material); f.position.set(.7*k,.15*k,s*.42*k); grp.add(f); }
+  const wg=makeWing(wingLen, 1.9*k);
+  const wings=[];
+  for(const s of [1,-1]){ const w=new THREE.Mesh(wg, material); w.rotation.y = s>0 ? -Math.PI/2 : Math.PI/2; w.position.set(-.15*k,7.55*k,0); grp.add(w); wings.push(w); }
+  grp.rotation.y = faceDir||0; grp.userData.wings=wings;
+  grp.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; } });
+  return grp;
+}
+function makeOx(material){
+  const g=new THREE.Group(); const B_=(w,h,d,x,y,z)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material); m.position.set(x,y,z); g.add(m); return m; };
+  const body=new THREE.Mesh(new THREE.SphereGeometry(1,18,12), material);
+  body.position.set(0,1.62,0); body.scale.set(1.25,.62,.58); g.add(body);
+  for(const [x,z] of [[.75,.35],[.75,-.35],[-.8,.35],[-.8,-.35]]){ const l=new THREE.Mesh(new THREE.CylinderGeometry(.14,.11,1.15,8),material); l.position.set(x,.58,z); g.add(l); }
+  B_(.62,.55,.5,1.55,1.95,0); B_(.3,.3,.42,1.95,1.8,0);
+  for(const s of [-1,1]){ const h=new THREE.Mesh(new THREE.CylinderGeometry(.03,.07,.55,6),material); h.position.set(1.55,2.35,s*.3); h.rotation.x=s*.9; g.add(h); }
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,.9,6),material); t.position.set(-1.25,1.3,0); t.rotation.z=.25; g.add(t);
+  g.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; } });
+  return g;
+}
+function catenary(a,b,sag,seg=24){ const pts=[]; for(let i=0;i<=seg;i++){ const t=i/seg; const p=new THREE.Vector3().lerpVectors(a,b,t); p.y-=sag*4*t*(1-t); pts.push(p);} return new THREE.CatmullRomCurve3(pts); }
+
+/* =====================================================================
+   ELEMENTS: each structure / furnishing = one module with its verse data
+   status: 'E' explicit | 'I' interpreted | 'EI' explicit, with reconstructed details
+   dims: [label, cubits|null, note?, interpretedFlag?]
+   ===================================================================== */
+const ELEMENTS = [
+{ id:'site', name:'The site: Mount Moriah', status:'EI',
+  refs:['2 Chronicles 3:1'], aux:['1 Kings 7:39','Ezekiel 8:16'],
+  materials:'Hilltop; the threshing floor of Ornan the Jebusite',
+  explicit:'Built at Jerusalem in mount Moriah, in the place David prepared, the threshing floor of Ornan the Jebusite.',
+  interp:['Orientation: the entrance is placed to the east. This is inferred: the Sea stood "on the right side of the house eastward over against the south" (1 Kings 7:39), and in Ezekiel 8:16 men at the temple door have "their backs toward the temple of the LORD, and their faces toward the east".',
+          'Terrain, the levelled court and the distant hills are schematic. No topography is given.'],
+  dims:[], noNear:true,
+  tour:{pos:[250,55,120], look:[40,0,0]},
+  build(){
+    const g=new THREE.PlaneGeometry(1600,1600); const uv=g.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,uv.getX(i)*200,uv.getY(i)*200);
+    const m=mesh(g, M.ground, 80,-1,0, {cast:false}); m.rotation.x=-Math.PI/2;
+    // schematic hills (not pickable)
+    const hills=new THREE.Group(); hills.userData.noPick=true;
+    for(let i=0;i<34;i++){ const a=i/34*Math.PI*2, r=900+rnd()*300, hgt=40+rnd()*90 + (Math.cos(a)>.6?60:0);
+      const c=new THREE.Mesh(new THREE.ConeGeometry(160+rnd()*120, hgt, 7), M.hill); c.position.set(80+Math.cos(a)*r, hgt/2-8, Math.sin(a)*r); c.userData.noPick=true; hills.add(c); }
+    B.g.add(hills);
+  }},
+
+{ id:'foundation', name:'Foundation and platform', status:'EI',
+  refs:['1 Kings 5:17','1 Kings 6:1','1 Kings 6:7','1 Kings 6:37','1 Kings 6:38'], aux:[],
+  materials:'Great stones, costly stones, and hewed stones',
+  explicit:'The foundation was laid with great, costly, hewed stones. Stone was made ready before it was brought, so no hammer, axe or iron tool was heard in the house. Begun in the 4th year of Solomon, finished in the 11th (seven years).',
+  interp:['The raised platform (1 cubit), its outline and the three front steps are reconstructions. No foundation or platform measurements are given for Solomon’s house.'],
+  dims:[['Platform height',1,'',true],['Building time',null,'7 years']],
+  tour:{pos:[72,3,38], look:[30,-.5,22]},
+  build(){
+    box([-45,53],[-1,0],[-25,25], M.great, {I:true});
+    box([53,54],[-1,-.333],[-12,12], M.great, {I:true});
+    box([54,55],[-1,-.667],[-12,12], M.great, {I:true});
+  }},
+
+{ id:'house', name:'The house: outer walls', status:'EI',
+  refs:['1 Kings 6:2','2 Chronicles 3:3','1 Kings 6:7'], aux:['Ezekiel 41:5'],
+  materials:'Hewn stone, made ready at the quarry',
+  explicit:'The house was 60 cubits long, 20 broad and 30 high, measured "after the first measure" (2 Chronicles 3:3).',
+  interp:['Wall thickness of 6 cubits at ground level is borrowed from Ezekiel 41:5 ("the wall of the house, six cubits"). Solomon’s text gives no wall thickness.',
+          'The wall steps in by 1 cubit at each chamber storey (1 Kings 6:6), giving 6, 5 and 4 cubits. Those thicknesses are derived.',
+          '"After the first measure" (2 Chronicles 3:3) is usually taken to mean an older, longer cubit. Switch the cubit to compare.'],
+  dims:[['Length (interior)',60],['Breadth (interior)',20],['Height (interior)',30],['Wall thickness at base',6,'',true]],
+  tour:{pos:[150,14,62], look:[0,14,0]},
+  build(){
+    const s=M.stone;
+    for(const Z of [r=>r, mz]){
+      box([-36,36],[0,5.5],Z([10,16]),s); box([-35,36],[5.5,11],Z([10,15]),s); box([-34,36],[11,30],Z([10,14]),s);
+    }
+    box([-36,-30],[0,5.5],[-10,10],s); box([-35,-30],[5.5,11],[-10,10],s); box([-34,-30],[11,30],[-10,10],s);
+    box([30,36],[0,30],[-10,-2.5],s); box([30,36],[0,30],[2.5,10],s); box([30,36],[10,30],[-2.5,2.5],s);
+  }},
+
+{ id:'porch', name:'The porch (ulam)', status:'EI',
+  refs:['1 Kings 6:3','2 Chronicles 3:4'], aux:[],
+  materials:'Stone walls, overlaid within with pure gold',
+  explicit:'A porch before the temple, 20 cubits long (the breadth of the house) and 10 cubits deep, overlaid within with pure gold.',
+  interp:['Height: 2 Chronicles 3:4 reads 120 cubits in the Hebrew text. Some Greek manuscripts and the Syriac read 20, and many commentators (e.g. Keil & Delitzsch; Japhet, I & II Chronicles, OTL) suspect a copying error, since 1 Kings gives no height and 120 cubits would make a tower four times the height of the house. Use the porch-height switch to see both.',
+          'The front opening (14 × 16 cubits), lintel and roof are reconstructed. The porch front is not described.'],
+  dims:()=>[['Across (breadth of the house)',20],['Depth',10],['Height as written, 2 Chr 3:4',120],['Height shown now',S.porchH,'',true]],
+  zone:[36,0,-10,48,20,10],
+  tour:{pos:[70,3,-6], look:[42,9,0]},
+  build(){
+    const H=S.porchH, s=M.stone;
+    for(const Z of [r=>r, mz]){ box([36,48],[0,H],Z([10,16]),s); box([46,48],[0,H],Z([7,10]),s,{I:true}); }
+    box([46,48],[16,H],[-7,7],s,{I:true});
+    box([36,48],[H,H+1.5],[-16,16],M.cedar,{roof:true,I:true});
+    // gold overlay within
+    for(const Z of [r=>r, mz]) box([36,46],[0,H],Z([9.85,10]),M.gold,{solid:false});
+    box([36,36.15],[0,H],[-10,-2.5],M.gold,{solid:false}); box([36,36.15],[0,H],[2.5,10],M.gold,{solid:false}); box([36,36.15],[10,H],[-2.5,2.5],M.gold,{solid:false});
+    box([36,46],[H-.15,H],[-10,10],M.gold,{solid:false,roof:true});
+  }},
+
+{ id:'windows', name:'Windows of narrow lights', status:'EI',
+  refs:['1 Kings 6:4'], aux:[],
+  materials:'Not stated',
+  explicit:'The house had "windows of narrow lights".',
+  interp:['Shape, number and position are not given. Shown as 5 tall openings per side, high in the Holy Place walls above the side chambers. They could not be lower, where the chambers stand against the wall.',
+          'The Hebrew phrase is read variously as "framed" or "recessed" windows, "latticed" windows, or, following Rashi and the KJV margin, windows "broad within, and narrow without". Shown as narrow recessed frames outside and broader latticed openings inside.',
+          'No windows are described for the oracle, so none are placed there.'],
+  dims:[['Number',null,'not given (5 per side shown)',true],['Opening (shown)',7,'× 1 outside, 2 inside',true]],
+  tour:{pos:[20,3.6,-4], look:[6,22,10]},
+  build(){
+    const xs=[4,9.5,15,20.5,26];   // kept east of x≈13 so sunlight falls in the Holy Place, not through the oracle screen
+    for(const sgn of [1,-1]){
+      for(const x of xs){
+        // outside: stepped (framed) recess
+        const zo=sgn*14;
+        box([x-1.1,x+1.1],[19.4,27.6],[zo-(sgn>0?0:.08)+(sgn>0?0:0), zo+(sgn>0?.08:0)].sort((a,b)=>a-b), M.stone,{solid:false,I:true}).position.z=zo+sgn*.05;
+        const dk=box([x-.5,x+.5],[20,27],[0,.1],M.dark,{solid:false,I:true}); dk.position.z=zo+sgn*.1;
+        // inside: broader lattice
+        const zi=sgn*9.8, lg=new THREE.Group(); lg.position.set(x,23.5,zi-sgn*.05);
+        const pane=new THREE.Mesh(new THREE.PlaneGeometry(2,7), M.lattice); pane.rotation.y= sgn>0?Math.PI:0; lg.add(pane);
+        for(let i=-2;i<=2;i++){ const bar=new THREE.Mesh(new THREE.BoxGeometry(.12,7,.12),M.gold); bar.position.set(i*.4,0,-sgn*.05); lg.add(bar); }
+        for(let j=-3;j<=3;j++){ const bar=new THREE.Mesh(new THREE.BoxGeometry(2,.12,.12),M.gold); bar.position.set(0,j,-sgn*.05); lg.add(bar); }
+        B.g.add(lg); interpMeshes.push(pane);
+      }
+    }
+    // light shafts through the south windows
+    const v=SUN_DIR.clone().multiplyScalar(-1).divideScalar(SUN_DIR.y); // per unit of y drop
+    const pos=[], col=[];
+    const quad=(a,b,c,d,ca,cb)=>{ for(const [p,cc] of [[a,ca],[b,ca],[c,cb],[a,ca],[c,cb],[d,cb]]){ pos.push(p.x,p.y,p.z); col.push(cc,cc*.92,cc*.72);} };
+    for(const x of xs){
+      const top=new THREE.Vector3(x,27,9.8), bot=new THREE.Vector3(x,20,9.8), mid1=new THREE.Vector3(x-1,23.5,9.8), mid2=new THREE.Vector3(x+1,23.5,9.8);
+      const proj=p=>p.clone().addScaledVector(v,p.y);
+      quad(bot,top,proj(top),proj(bot),.11,.02); quad(mid1,mid2,proj(mid2),proj(mid1),.11,.02);
+    }
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+    const shafts=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,side:THREE.DoubleSide,fog:false}));
+    shafts.userData.noPick=true; B.g.add(shafts); roofs.push(shafts); shafts.userData.hideInCut=true;
+  }},
+
+{ id:'chambers', name:'Side chambers', status:'EI',
+  refs:['1 Kings 6:5','1 Kings 6:6','1 Kings 6:10'], aux:['Ezekiel 41:6'],
+  materials:'Stone, with timber of cedar',
+  explicit:'Three storeys of chambers against the walls of the temple and the oracle: the nethermost 5 cubits broad, the middle 6, the third 7; each 5 cubits high. Narrowed rests in the wall carried the beams "that the beams should not be fastened in the walls".',
+  interp:['The number of rooms is not given for Solomon. Rooms are spaced about 6 cubits apart, roughly the thirty per storey of Ezekiel 41:6.',
+          'The outer wall (3 cubits) and the chamber roof are reconstructed.',
+          'The chambers do not wrap the porch: the text says "both of the temple and of the oracle".'],
+  dims:[['Nethermost chamber, breadth',5],['Middle chamber, breadth',6],['Third chamber, breadth',7],['Height of each storey',5],['Outer wall',3,'',true]],
+  tour:{pos:[14,6,62], look:[-4,8,20]},
+  build(){
+    const s=M.stone;
+    // collision volume for the whole block (you cannot enter)
+    for(const Z of [r=>r, mz]) solid([-44,36],[0,17],Z([16,24]));
+    solid([-44,-36],[0,17],[-24,24]);
+    for(const Z of [r=>r, mz]){
+      const doorGap = Z===mz ? null : [-1.8,1.8];
+      if(doorGap){ box([-44,doorGap[0]],[0,16],Z([21,24]),s,{solid:false,I:true}); box([doorGap[1],36],[0,16],Z([21,24]),s,{solid:false,I:true}); box([doorGap[0],doorGap[1]],[6.5,16],Z([21,24]),s,{solid:false,I:true}); }
+      else box([-44,36],[0,16],Z([21,24]),s,{solid:false,I:true});
+      box([33,36],[0,16],Z([16,21]),s,{solid:false,I:true});
+      box([-41,33],[5,5.5],Z([15,21]),M.cedar,{solid:false});
+      box([-41,33],[10.5,11],Z([14,21]),M.cedar,{solid:false});
+      box([-44,36],[16,17],Z([14,24]),M.cedar,{solid:false,roof:true,I:true});
+      for(let x=-35;x<33;x+=6){ if(Z!==mz && x>-4 && x<4) continue;
+        box([x,x+.4],[0,5],Z([16,21]),M.cedar,{solid:false,I:true}); box([x,x+.4],[5.5,10.5],Z([15,21]),M.cedar,{solid:false,I:true}); box([x,x+.4],[11,16],Z([14,21]),M.cedar,{solid:false,I:true}); }
+    }
+    box([-44,-41],[0,16],[-21,21],s,{solid:false,I:true});
+    box([-41,-35],[5,5.5],[-15,15],M.cedar,{solid:false}); box([-41,-34],[10.5,11],[-14,14],M.cedar,{solid:false});
+    box([-44,-34],[16,17],[-14,14],M.cedar,{solid:false,roof:true,I:true});
+  }},
+
+{ id:'stairs', name:'Door and winding stairs', status:'EI',
+  refs:['1 Kings 6:8'], aux:['1 Kings 7:39'],
+  materials:'Not stated',
+  explicit:'The door for the middle chamber was in the right side of the house; they went up by winding stairs into the middle chamber and on into the third.',
+  interp:['"Right side" is read as south, as in 1 Kings 7:39. The position of the door along the wall and the spiral form of the stairs are reconstructed. Turn on the cutaway to see the stairs.'],
+  dims:[['Door (shown)',null,'3.6 × 6.5 c',true]],
+  tour:{pos:[6,26,44], look:[0,6,19], cut:true},
+  build(){
+    const d=box([-1.8,1.8],[0,6.5],[23.7,23.8],M.cedar,{solid:false,I:true});
+    const n=34, stepG=new THREE.BoxGeometry(2.1,.18,.9);
+    const newel=mesh(new THREE.CylinderGeometry(.35,.35,11.2,12), M.stone, 0,5.6,18.5,{I:true});
+    for(let i=0;i<n;i++){ const a=i/n*Math.PI*2*2.2, y=(i+1)*(11/n);
+      const st=new THREE.Mesh(stepG,M.cedar); st.position.set(Math.cos(a)*1.3,y,18.5+Math.sin(a)*1.3); st.rotation.y=-a; add(st,{I:true}); }
+  }},
+
+{ id:'roof', name:'Roof and ceiling', status:'EI',
+  refs:['1 Kings 6:9','1 Kings 6:15','2 Chronicles 3:5','2 Chronicles 3:6'], aux:[],
+  materials:'Beams and boards of cedar; fir ceiling overlaid with fine gold; precious stones',
+  explicit:'The house was covered with beams and boards of cedar. The greater house was ceiled with fir tree, overlaid with fine gold, with palm trees and chains set on it, and garnished with precious stones.',
+  interp:['A flat roof is assumed. Roof shape, parapet and drainage are not described.',
+          'The layout of palms, chains and stones on the ceiling is a pattern of our own. The text says only that they were there, not where the stones were set.'],
+  dims:[['Roof depth (beams)',1.5,'',true]],
+  tour:{pos:[100,70,-90], look:[0,28,0]},
+  build(){
+    box([-36,36],[30,31.5],[-16,16],M.cedar,{roof:true,I:true});
+    const c=box([-9.85,30],[29.8,30],[-10,10],M.ceiling,{solid:false,roof:true});
+  }},
+
+{ id:'lining', name:'Walls within: cedar, carvings and gold', status:'EI',
+  refs:['1 Kings 6:15','1 Kings 6:18','1 Kings 6:21','1 Kings 6:22','1 Kings 6:29','1 Kings 6:30'], aux:['2 Chronicles 3:7'],
+  materials:'Cedar boards, overlaid with pure gold; floor of fir, overlaid with gold',
+  explicit:'The walls were lined with cedar from floor to ceiling so that no stone was seen, carved with knops and open flowers, cherubims and palm trees, and the whole house was overlaid with gold, the floor included.',
+  interp:['The arrangement of the carvings (bands of open flowers above and below a register alternating cherub and palm tree) and how each motif looks are reconstructed. Ezekiel 41:18 describes a similar cherub, palm, cherub alternation for his visionary temple.'],
+  dims:[],
+  tour:{pos:[24,3.6,2], look:[6,10,10]},
+  build(){
+    const m=M.carved, o={solid:false};
+    for(const Z of [r=>r, mz]){ box([-9.85,29.8],[0,29.8],Z([9.8,10]),m,o); box([-29.8,-10.15],[0,20],Z([9.8,10]),m,o); }
+    box([29.8,30],[0,29.8],[-9.8,-2.5],m,o); box([29.8,30],[0,29.8],[2.5,9.8],m,o); box([29.8,30],[10,29.8],[-2.5,2.5],m,o);
+    box([-30,-29.8],[0,20],[-10,10],m,o);
+  }},
+
+{ id:'hekal', name:'The Holy Place (hekal)', status:'EI',
+  refs:['1 Kings 6:17','1 Kings 6:15'], aux:[],
+  materials:'Floor of fir planks overlaid with gold',
+  explicit:'The house before the oracle, the temple, was 40 cubits long.',
+  interp:['The oracle partition is shown as a cedar screen about ⅓ cubit thick so that 20 + 40 = 60 still holds. The text gives the partition no thickness.'],
+  dims:[['Length',40],['Breadth',20],['Height',30]],
+  zone:[-9.85,0,-10,30,30,10],
+  tour:{pos:[28,3.6,0], look:[-10,5,0]},
+  build(){
+    box([-9.85,30],[-.12,.01],[-10,10],M.goldFloor,{solid:false,cast:false});
+    light(0xffbe6e,1.5,26*S.C/0.45, 3,6,0); light(0xffbe6e,1.5,26*S.C/0.45, 18,6,0);
+  }},
+
+{ id:'oracle', name:'The Most Holy Place (oracle)', status:'EI',
+  refs:['1 Kings 6:16','1 Kings 6:19','1 Kings 6:20','2 Chronicles 3:8'], aux:[],
+  materials:'Cedar, overlaid with pure gold (600 talents)',
+  explicit:'The oracle was prepared within the house to set the ark of the covenant there: 20 cubits long, 20 broad and 20 high, overlaid with pure gold, 600 talents of fine gold.',
+  interp:['No windows are described. The oracle is left dark here. The hand lamp is a visitor aid only, not part of the reconstruction.',
+          'The floor is kept level with the Holy Place. The alternative, a raised floor, is discussed under "Space above the oracle".'],
+  dims:[['Length',20],['Breadth',20],['Height',20],['Gold',null,'600 talents']],
+  zone:[-30,0,-10,-10,20,10],
+  tour:{pos:[-12.6,3.4,-1], look:[-22,5,0]},
+  build(){
+    box([-30,-10.15],[-.12,.01],[-10,10],M.goldFloor,{solid:false,cast:false});
+    // partition of cedar boards overlaid with gold, with doorway
+    box([-10.15,-9.85],[0,30],[-10,-2],M.carved); box([-10.15,-9.85],[0,30],[2,10],M.carved); box([-10.15,-9.85],[8,30],[-2,2],M.carved);
+    box([-30,-10.15],[20,20.8],[-10,10],M.oracleCeil,{fade:true});
+  }},
+
+{ id:'upper', name:'Space above the oracle ("upper chambers")', status:'I',
+  refs:['2 Chronicles 3:9'], aux:['1 Kings 6:2','1 Kings 6:20'],
+  materials:'Overlaid with gold',
+  explicit:'"He overlaid the upper chambers with gold" (2 Chronicles 3:9). The oracle is 20 cubits high inside a house 30 cubits high.',
+  interp:['Where the other 10 cubits went is not stated. Shown as a lowered oracle ceiling with a gilded room above.',
+          'Alternative: a raised oracle floor reached by steps, as at the ʿAin Dara and Tell Tayinat temples (Busink, Der Tempel von Jerusalem; Monson, BAR 2000). Some identify the "upper chambers" with the side-chamber storeys.'],
+  dims:[['Height difference',10],['Floor area (as shown)',null,'20 × 20 c',true]],
+  tour:{pos:[-20,52,34], look:[-20,21,0], cut:true},
+  build(){
+    const o={solid:false,I:true};
+    for(const Z of [r=>r, mz]) box([-29.8,-10.15],[20.8,29.8],Z([9.8,10]),M.gold,o);
+    box([-30,-29.8],[20.8,29.8],[-10,10],M.gold,o);
+    box([-30,-10.15],[20.8,20.85],[-10,10],M.gold,o);
+  }},
+
+{ id:'chains', name:'Chains of gold before the oracle', status:'EI',
+  refs:['1 Kings 6:21'], aux:[],
+  materials:'Gold',
+  explicit:'He made a partition by the chains of gold before the oracle.',
+  interp:['Form is not given. Shown as festoons of gold chain across the oracle front. The phrase may also mean chains drawn across the doorway, or chains holding the veil.'],
+  dims:[],
+  tour:{pos:[-1,5,-5], look:[-10,14,0]},
+  build(){
+    for(const [y,sag] of [[17,1.2],[14.5,1.5]]){
+      for(let i=0;i<4;i++){ const z0=-10+i*5, z1=z0+5;
+        const c=catenary(new THREE.Vector3(-9.6,y,z0), new THREE.Vector3(-9.6,y,z1), sag);
+        mesh(new THREE.TubeGeometry(c,30,.07,6,false), M.gold, 0,0,0, {I:true}); } }
+  }},
+
+{ id:'oracleDoors', name:'Doors of the oracle', status:'EI',
+  refs:['1 Kings 6:31','1 Kings 6:32'], aux:[],
+  materials:'Olive tree, carved, overlaid with gold',
+  explicit:'For the entering of the oracle he made doors of olive tree, carved with cherubims, palm trees and open flowers, and overlaid with gold. The lintel and side posts were "a fifth part of the wall".',
+  interp:['"A fifth part of the wall" is read as a doorway one fifth of the 20-cubit wall (4 cubits). Alternatives: a five-sided lintel and posts, or a frame recessed in five steps (see Cogan, 1 Kings, Anchor Bible). Door height is not given.',
+          'The doors are shown open so the oracle can be explored.'],
+  dims:[['Doorway width (⅕ of 20)',4,'',true],['Doorway height',8,'',true]],
+  tour:{pos:[-3,3.6,3.5], look:[-10,4,0]},
+  build(){
+    for(const s of [1,-1]){
+      const leaf=new THREE.Mesh(new THREE.BoxGeometry(2,7.9,.15), M.carved); leaf.geometry.translate(-1,0,0);
+      leaf.position.set(-10.15,3.95,s*2); leaf.rotation.y = s>0 ? -Math.PI*0.48 : Math.PI*0.48; add(leaf,{I:false});
+      box([-10.4,-9.6],[0,8.4],[s>0?1.8:-2.2, s>0?2.2:-1.8],M.gold,{solid:false});
+    }
+    box([-10.4,-9.6],[8,8.5],[-2.2,2.2],M.gold,{solid:false});
+  }},
+
+{ id:'veil', name:'The veil', status:'EI',
+  refs:['2 Chronicles 3:14'], aux:[],
+  materials:'Blue, purple, crimson and fine linen, with cherubims wrought on it',
+  explicit:'He made the vail of blue, and purple, and crimson, and fine linen, and wrought cherubims thereon.',
+  interp:['Mentioned only in Chronicles. Kings speaks of olive doors. Shown hanging on the Holy Place side of the open doors, parted at the centre. How veil and doors were used together is not stated.',
+          'The weave pattern and the placement of the cherubim are reconstructed.'],
+  dims:[['Size',null,'not given',true]],
+  tour:{pos:[-2,3.6,-2.5], look:[-9.6,4,0]},
+  build(){
+    for(const s of [1,-1]){
+      const g=new THREE.PlaneGeometry(2.1,8.4,12,1); const p=g.attributes.position;
+      for(let i=0;i<p.count;i++){ const x=p.getX(i); p.setZ(i, Math.sin((x+1.05)*6)*.12); }
+      g.computeVertexNormals();
+      const v=new THREE.Mesh(g,M.veil); v.rotation.y=Math.PI/2; v.position.set(-9.45,4.2,s*1.55); add(v,{I:true});
+    }
+    mesh(new THREE.CylinderGeometry(.06,.06,5.2,8), M.gold, -9.45,8.45,0).rotation.x=Math.PI/2;
+  }},
+
+{ id:'templeDoors', name:'Doors of the temple', status:'EI',
+  refs:['1 Kings 6:33','1 Kings 6:34','1 Kings 6:35','1 Kings 7:50'], aux:[],
+  materials:'Posts of olive tree; two doors of fir; carved and overlaid with gold; hinges of gold',
+  explicit:'Posts of olive tree, "a fourth part of the wall". Two doors of fir tree, each of two folding leaves, carved with cherubims, palm trees and open flowers, covered with gold fitted upon the carved work. The hinges were of gold.',
+  interp:['"A fourth part of the wall" is read as a 5-cubit doorway (one quarter of 20). Alternative: a frame recessed in four steps. Height is not given.',
+          'Each door is shown with its two leaves folded back against the inner wall.'],
+  dims:[['Doorway width (¼ of 20)',5,'',true],['Doorway height',10,'',true]],
+  tour:{pos:[22,3.6,-3.5], look:[29,5,3]},
+  build(){
+    for(const s of [1,-1]){
+      const hx=29.8, hz=s*2.5;
+      const l1=new THREE.Mesh(new THREE.BoxGeometry(1.25,9.9,.15),M.carved); l1.geometry.translate(-.625,0,0);
+      l1.position.set(hx,4.95,hz); l1.rotation.y= s>0? -.25 : .25; add(l1);
+      const l2=new THREE.Mesh(new THREE.BoxGeometry(1.25,9.9,.15),M.carved); l2.geometry.translate(-.625,0,0);
+      l2.position.set(-1.25,0,0); l2.rotation.y = s>0 ? .5 : -.5; l1.add(l2); l2.castShadow=true;
+      box([29.5,30.3],[0,10.4],[s>0?2.3:-2.7, s>0?2.7:-2.3],M.gold,{solid:false});
+    }
+    box([29.5,30.3],[10,10.5],[-2.7,2.7],M.gold,{solid:false});
+  }},
+
+{ id:'cherubim', name:'The two cherubim', status:'EI',
+  refs:['1 Kings 6:23','1 Kings 6:24','1 Kings 6:25','1 Kings 6:26','1 Kings 6:27','1 Kings 6:28','2 Chronicles 3:10','2 Chronicles 3:11','2 Chronicles 3:12','2 Chronicles 3:13'], aux:['Exodus 25:20'],
+  materials:'Olive tree, overlaid with gold',
+  explicit:'Two cherubims of olive tree, each 10 cubits high, with wings of 5 cubits each (10 from tip to tip). Set in the inner house, the wing of one touching one wall, the wing of the other the other wall, and their wings touching one another in the midst. They stood on their feet, faces inward, overlaid with gold.',
+  interp:['The text gives height, wings and gold, and says they "stood on their feet" with "faces inward", but gives no faces, body shape or number of faces. The figures are kept deliberately plain.',
+          '"Their faces were inward" (2 Chronicles 3:13) is shown as facing the Holy Place (east). The Hebrew can be read "toward the house". Another reading has them facing each other, like the cherubim on the ark (Exodus 25:20).',
+          'Ezekiel 1 and 10 describe four-faced cherubim, but the text does not say these followed that pattern.'],
+  dims:[['Height of each',10],['Each wing',5],['Wingspan of one',10],['Both together, wall to wall',20]],
+  tour:{pos:[-11.5,3.4,-6.5], look:[-20,7.5,0]},
+  build(){
+    for(const z of [-5,5]){ const c=makeCherub(10,5,M.gold,0); c.position.set(-20.6,0,z); B.g.add(c);
+      c.traverse(o=>{ if(o.isMesh && o.geometry.type!=='ExtrudeGeometry') interpMeshes.push(o); });
+      solid([-21.9,-19.2],[0,8.5],[z-1.3,z+1.3]); }
+  }},
+
+{ id:'ark', name:'The Ark of the Covenant', status:'EI',
+  refs:['1 Kings 8:6','1 Kings 8:7','1 Kings 8:8','1 Kings 8:9'], aux:['Exodus 25:10','Exodus 25:11','Exodus 25:12','Exodus 25:14','Exodus 25:17','Exodus 25:18','Exodus 25:20'],
+  materials:'Shittim wood overlaid with pure gold; mercy seat of pure gold',
+  explicit:'The ark was brought into the oracle, under the wings of the cherubims. The staves were drawn out so that their ends were seen from the holy place before the oracle but not from outside. There was nothing in the ark except the two tables of stone. Its measurements and form come from Exodus 25, since this is the same ark.',
+  interp:['Stave length is not given. The staves run east–west so their ends reach toward the doorway, one reading of 1 Kings 8:8.',
+          'The small cherubim on the mercy seat are described only by their wings and faces (Exodus 25:20). Their figures are reconstructed.'],
+  dims:[['Length (Exodus 25:10)',2.5],['Breadth',1.5],['Height',1.5],['Staves (shown)',8,'',true]],
+  tour:{pos:[-14,3.2,2.5], look:[-20,1,0]},
+  build(){
+    const x=-20, g=M.gold;
+    box([x-1.25,x+1.25],[.25,1.5],[-.75,.75],g);
+    box([x-1.3,x+1.3],[1.45,1.55],[-.8,.8],g,{solid:false});
+    box([x-1.25,x+1.25],[1.55,1.7],[-.75,.75],g,{solid:false});
+    for(const s of [-1,1]){ box([x+s*1.05-.12,x+s*1.05+.12],[0,.25],[-.7,.7],g,{solid:false});
+      const c=makeCherub(.95,.7,g,s>0?Math.PI:0); c.position.set(x+s*.95,1.7,0); B.g.add(c);
+      c.userData.wings.forEach((w,i)=>{ w.rotation.z=.9; w.rotation.x=(i?-1:1)*.25; });
+      c.traverse(o=>{ if(o.isMesh) interpMeshes.push(o); });
+      const st=mesh(new THREE.CylinderGeometry(.06,.06,8,10), g, x+3, .55, s*.85, {I:true}); st.rotation.z=Math.PI/2;
+      for(const rx of [-1.1,1.1]) mesh(new THREE.TorusGeometry(.12,.035,8,16), g, x+rx,.55,s*.8).rotation.y=Math.PI/2;
+    }
+  }},
+
+{ id:'incense', name:'Altar of incense (the golden altar)', status:'EI',
+  refs:['1 Kings 6:20','1 Kings 6:22','1 Kings 7:48','2 Chronicles 4:19'], aux:['Exodus 30:1','Exodus 30:2','Exodus 30:3'],
+  materials:'Cedar, overlaid with gold',
+  explicit:'An altar of cedar, covered and overlaid with gold, "by the oracle".',
+  interp:['Size and form follow the Tabernacle altar of incense (Exodus 30:1–3: 1 × 1 × 2 cubits, with horns and a crown). Solomon’s text gives no measurements.',
+          'Placed in front of the oracle doorway, reading "by the oracle".'],
+  dims:[['Length (Exodus 30:2)',1,'',true],['Breadth',1,'',true],['Height',2,'',true]],
+  tour:{pos:[-1.5,3.4,3], look:[-6.5,1.5,0]},
+  build(){
+    const x=-6.5; box([x-.5,x+.5],[0,2],[-.5,.5],M.gold,{I:true});
+    box([x-.56,x+.56],[1.85,1.95],[-.56,.56],M.gold,{solid:false,I:true});
+    for(const [dx,dz] of [[-1,-1],[1,-1],[-1,1],[1,1]]) mesh(new THREE.ConeGeometry(.1,.28,8), M.gold, x+dx*.4,2.14,dz*.4,{I:true});
+    const f=mesh(new THREE.SphereGeometry(.12,8,6), M.ember, x,2.08,0,{cast:false}); flames.push(f);
+  }},
+
+{ id:'tables', name:'Tables of shewbread', status:'EI',
+  refs:['1 Kings 7:48','2 Chronicles 4:8','2 Chronicles 4:19'], aux:['Exodus 25:23','Exodus 25:24','Exodus 25:25','Exodus 25:30'],
+  materials:'Gold',
+  explicit:'Solomon made the table of gold whereupon the shewbread was. Chronicles adds that he made ten tables, five on the right side and five on the left.',
+  interp:['Kings speaks of "the table"; Chronicles of ten. Ten are shown. Some readers take the ten as serving tables, with a single table for the bread.',
+          'Size and form follow the Tabernacle table (Exodus 25:23–25). The number of loaves is not given for Solomon. Two piles of six are shown for illustration, after Leviticus 24:5–6.'],
+  dims:[['Length (Exodus 25:23)',2,'',true],['Breadth',1,'',true],['Height',1.5,'',true],['Number',null,'10 (2 Chr 4:8)']],
+  tour:{pos:[5,3.4,-.5], look:[12,1.2,4.2]},
+  build(){
+    for(const s of [1,-1]) for(const x of [0,6,12,18,24]){
+      const z=s*4.2;
+      box([x-1,x+1],[1.38,1.5],[z-.5,z+.5],M.gold,{solid:false,I:true});
+      box([x-1,x+1],[1.5,1.62],[z-.5,z-.44],M.gold,{solid:false,I:true}); box([x-1,x+1],[1.5,1.62],[z+.44,z+.5],M.gold,{solid:false,I:true});
+      for(const [dx,dz] of [[-.9,-.4],[.9,-.4],[-.9,.4],[.9,.4]]) box([x+dx-.06,x+dx+.06],[0,1.38],[z+dz-.06,z+dz+.06],M.gold,{solid:false,I:true});
+      solid([x-1,x+1],[0,1.6],[z-.5,z+.5]);
+      for(const dx of [-.45,.45]) for(let k=0;k<6;k++) mesh(new THREE.CylinderGeometry(.34,.36,.1,14), M.bread, x+dx,1.56+k*.105,z,{I:true}).scale.z=.7;
+    }
+  }},
+
+{ id:'lampstands', name:'Ten golden lampstands', status:'EI',
+  refs:['1 Kings 7:49','2 Chronicles 4:7','2 Chronicles 4:20'], aux:['Exodus 25:31','Exodus 25:32','Exodus 25:33','Exodus 25:37'],
+  materials:'Pure gold',
+  explicit:'Candlesticks of pure gold, five on the right side and five on the left, before the oracle, with the flowers, lamps and tongs of gold, made "according to their form".',
+  interp:['"According to their form" (2 Chronicles 4:7) is taken to point to the Tabernacle lampstand of Exodus 25:31–40: a shaft with six branches and seven lamps, with bowls, knops and flowers. Height is given nowhere; 3.5 cubits is assumed.',
+          'Curved branches follow the Arch of Titus relief. Maimonides and others held that the branches were straight. Placement in two rows along the walls is interpretive.'],
+  dims:[['Number',null,'10 (5 right, 5 left)'],['Branches (Exodus 25:32)',null,'6, with 7 lamps'],['Height (shown)',3.5,'',true]],
+  tour:{pos:[-1,3.4,-2.5], look:[9,2.2,-7.5]},
+  build(){
+    for(const s of [1,-1]) for(const x of [-3,3,9,15,21]){
+      const z=s*7.5, grp=new THREE.Group(); grp.position.set(x,0,z);
+      const G=(geo,px,py,pz,rz)=>{ const m=new THREE.Mesh(geo,M.gold); m.position.set(px,py,pz); if(rz) m.rotation.z=rz; grp.add(m); interpMeshes.push(m); return m; };
+      G(new THREE.CylinderGeometry(.18,.55,.35,16),0,.18,0);
+      G(new THREE.CylinderGeometry(.07,.09,3.2,10),0,1.9,0);
+      for(const r of [.45,.8,1.15]){ const t=G(new THREE.TorusGeometry(r,.05,8,28,Math.PI),0,3.2,0,Math.PI); }
+      for(const lx of [-1.15,-.8,-.45,0,.45,.8,1.15]){ G(new THREE.CylinderGeometry(.13,.06,.14,10),lx,3.3,0);
+        const f=new THREE.Mesh(new THREE.ConeGeometry(.055,.2,8),M.flame); f.position.set(lx,3.47,0); grp.add(f); flames.push(f); }
+      for(const y of [1.2,2,2.6]) G(new THREE.SphereGeometry(.12,10,8),0,y,0);
+      grp.traverse(o=>{ if(o.isMesh && o.material!==M.flame){ o.castShadow=true; } });
+      B.g.add(grp); solid([x-.5,x+.5],[0,3.5],[z-.5,z+.5]);
+    }
+  }},
+
+{ id:'vessels', name:'Vessels of the house', status:'EI',
+  refs:['1 Kings 7:40','1 Kings 7:45','1 Kings 7:50','2 Chronicles 4:11','2 Chronicles 4:16','2 Chronicles 4:22'], aux:[],
+  materials:'Bright brass; pure gold',
+  explicit:'Pots, shovels and basons of bright brass; bowls, snuffers, basons, spoons and censers of pure gold; hinges of gold.',
+  interp:['Shapes, sizes and placement are illustrative only.'],
+  dims:[],
+  tour:{pos:[106,3,24], look:[100,-.5,14]},
+  build(){
+    for(let i=0;i<4;i++) lathe([[0,0],[.35,0],[.5,.3],[.52,.6],[.42,.8],[.46,.85]],18,M.bronze, 95+i*1.6,-1,13.5,{I:true});
+    for(let i=0;i<2;i++){ const sh=mesh(new THREE.BoxGeometry(.9,.05,.5),M.bronze,103+i*1.4,-.95,14,{I:true}); mesh(new THREE.CylinderGeometry(.04,.04,2,6),M.bronze,103+i*1.4,-.9,15.2,{I:true}).rotation.x=Math.PI/2; }
+    for(const x of [6,18]) lathe([[0,0],[.12,0],[.28,.12],[.3,.16]],14,M.gold,x,1.62,-4.2,{I:true});
+    for(const z of [-1.2,1.2]) lathe([[0,0],[.1,0],[.2,.14],[.2,.18]],12,M.gold,-6.5,0,z,{I:true});
+  }},
+
+{ id:'innerCourt', name:'The inner court', status:'EI',
+  refs:['1 Kings 6:36','2 Chronicles 4:9'], aux:['Ezekiel 40:47'],
+  materials:'Three rows of hewed stone and a row of cedar beams',
+  explicit:'The inner court was built with three rows of hewed stone and a row of cedar beams. Chronicles calls it the court of the priests.',
+  interp:['No dimensions are given for Solomon’s courts. The square in front of the house takes the size of Ezekiel’s inner court (Ezekiel 40:47, 100 × 100 cubits), extended to enclose the house.',
+          'Course heights (about 1.2 cubits) and the gateway are reconstructed.'],
+  dims:[['Square before the house',100,'× 100 (Ezekiel)',true],['Wall',null,'3 rows stone + 1 row cedar']],
+  zone:[-62,-1,-57,152,12,57],
+  tour:{pos:[146,9,46], look:[60,2,0]},
+  build(){ courtWall(-62,152,-57,57,6,'inner'); }},
+
+{ id:'greatCourt', name:'The great court', status:'EI',
+  refs:['1 Kings 7:12','2 Chronicles 4:9'], aux:[],
+  materials:'Three rows of hewed stones and a row of cedar beams; doors overlaid with brass',
+  explicit:'The great court round about had three rows of hewed stones and a row of cedar beams. Solomon made doors for the court and overlaid them with brass.',
+  interp:['Size and gates are not given. Shown as a larger enclosure (380 × 240 cubits) with one east gate. The brass-covered doors follow 2 Chronicles 4:9.',
+          '1 Kings 7:12 also covers Solomon’s palace complex, which is outside this model.'],
+  dims:[['Size',null,'not given',true]],
+  zone:[-112,-1,-122,272,14,122],
+  tour:{pos:[262,24,108], look:[80,0,0]},
+  build(){ courtWall(-112,272,-122,122,8,'great');
+    for(const s of [1,-1]){ const d=new THREE.Mesh(new THREE.BoxGeometry(.3,5,8),M.bronze); d.geometry.translate(0,0,-s*4); d.position.set(272,1.5,s*8); d.rotation.y=s*1.2; add(d); } }},
+
+{ id:'pillars', name:'Jachin and Boaz', status:'EI',
+  refs:['1 Kings 7:15-22','1 Kings 7:41','1 Kings 7:42','2 Chronicles 3:15','2 Chronicles 3:16','2 Chronicles 3:17'], aux:['Jeremiah 52:21','Jeremiah 52:22','Jeremiah 52:23','2 Kings 25:17'],
+  materials:'Cast brass (bronze), hollow',
+  explicit:'Two pillars of brass, 18 cubits high, 12 cubits around, hollow, four fingers thick (Jeremiah 52:21). Each had a chapiter of 5 cubits with nets of checker work, seven wreaths of chain work, two rows of pomegranates (200 to a chapiter, 400 in all), and lily work. Jachin stood on the right, Boaz on the left.',
+  interp:['Shaft height: 18 cubits in Kings and Jeremiah; 2 Chronicles 3:15 gives 35, often explained as both pillars together (2 × 18 ≈ 35) or as including a base.',
+          'Chapiter: 5 cubits; 2 Kings 25:17 gives 3, perhaps the network band only.',
+          'Jachin on the right (south) and Boaz on the left (north), reading "right" as in 1 Kings 7:39. Shown standing free before the porch. Some reconstructions have them carrying the porch roof, as at ʿAin Dara (Monson), and some see them as free-standing symbols (Meyers, CBQ 1983).',
+          'The profiles of the bowl, network, chain wreaths and lily work are reconstructed. The counts follow the text.'],
+  dims:[['Shaft height',18],['Circumference',12],['Diameter (derived)',12/Math.PI],['Wall thickness (4 fingers)',1/6],['Chapiter',5],['Lily work',4],['Pomegranates per chapiter',null,'200 (2 rows)']],
+  tour:{pos:[64,2.8,-11], look:[50,13,5]},
+  build(){
+    const R=6/Math.PI;
+    for(const s of [1,-1]){
+      const x=50.5, z=s*6.2, g=new THREE.Group(); g.position.set(x,0,z);
+      const P=(m)=>{ g.add(m); m.castShadow=true; m.receiveShadow=true; return m; };
+      P(new THREE.Mesh(new THREE.CylinderGeometry(R,R,18,48,1,true),new THREE.MeshStandardMaterial({color:0x8f5f33,metalness:1,roughness:.4,side:THREE.DoubleSide}))).position.y=9;
+      const bowl=[[R,18],[R*1.08,18.3],[R*1.3,19],[R*1.36,19.7],[R*1.3,20.4],[R*1.12,20.8],[R*1.05,21]];
+      const bm=P(new THREE.Mesh(new THREE.LatheGeometry(bowl.map(p=>new THREE.Vector2(p[0],p[1])),48),M.bronze)); interpMeshes.push(bm);
+      const net=P(new THREE.Mesh(new THREE.CylinderGeometry(R*1.39,R*1.39,1.6,48,1,true),M.net)); net.position.y=19.6; net.castShadow=false;
+      for(let k=0;k<7;k++){ const t=P(new THREE.Mesh(new THREE.TorusGeometry(R*1.3+.08,.06,6,48),M.bronze)); t.rotation.x=Math.PI/2; t.position.y=18.55+k*.3; }
+      // lily work: flaring petals
+      for(let i=0;i<16;i++){ const a=i/16*Math.PI*2; const pet=P(new THREE.Mesh(new THREE.SphereGeometry(.55,10,8),M.bronze));
+        pet.scale.set(.35,1.7,.9); pet.position.set(Math.cos(a)*R*.95,22,Math.sin(a)*R*.95); pet.rotation.y=-a; pet.rotation.z=.35*Math.cos(0); pet.lookAt(Math.cos(a)*R*3,26,Math.sin(a)*R*3); interpMeshes.push(pet); }
+      const top=P(new THREE.Mesh(new THREE.CylinderGeometry(R*1.1,R*1.05,.25,48),M.bronze)); top.position.y=23;
+      const pg=new THREE.SphereGeometry(.13,8,6), im=new THREE.InstancedMesh(pg,M.bronzeDark,200), mx=new THREE.Matrix4();
+      for(let r=0;r<2;r++) for(let i=0;i<100;i++){ const a=(i+r*.5)/100*Math.PI*2, rr=r?R*1.33:R*1.2, y=r?20.45:18.45; mx.makeTranslation(Math.cos(a)*(rr+.12),y,Math.sin(a)*(rr+.12)); im.setMatrixAt(r*100+i,mx); }
+      g.add(im);
+      P(new THREE.Mesh(new THREE.CylinderGeometry(R*1.12,R*1.15,.3,48),M.bronze)).position.y=.15;
+      B.g.add(g); solid([x-R,x+R],[0,23],[z-R,z+R]); occluders.push(bm);
+    }
+  }},
+
+{ id:'sea', name:'The molten sea', status:'EI',
+  refs:['1 Kings 7:23','1 Kings 7:24','1 Kings 7:25','1 Kings 7:26','1 Kings 7:39','1 Kings 7:44','2 Chronicles 4:2','2 Chronicles 4:3','2 Chronicles 4:4','2 Chronicles 4:5','2 Chronicles 4:6','2 Chronicles 4:10'], aux:[],
+  materials:'Cast brass',
+  explicit:'A molten sea, round, 10 cubits from brim to brim, 5 cubits high, 30 cubits around, a hand breadth thick, with a brim like the brim of a cup, with flowers of lilies. Two rows of knops, ten in a cubit, cast with it. It stood on twelve oxen, three looking to each quarter, their hinder parts inward. It held 2,000 baths and was for the priests to wash in. It stood on the right side of the house, eastward, toward the south.',
+  interp:['The profile is not described beyond "round" with a brim "like the brim of a cup". Shown as a flared bowl.',
+          '10 across and 30 around (π ≈ 3): shown as 10 cubits across the outer flared brim and about 30 around the inner face below it. Others treat the numbers as round figures.',
+          'Capacity: a bath is estimated at about 22 litres (estimates run from about 21 to 45 L). 2 Chronicles 4:5 gives 3,000 baths.',
+          'The size of the oxen is not given.'],
+  dims:[['Diameter, brim to brim',10],['Height',5],['Circumference',30],['Thickness (a hand breadth)',1/6],['Capacity',null,'2,000 baths ≈ 44,000 L'],['Knops',null,'10 per cubit, 2 rows'],['Oxen',null,'12, three to each quarter']],
+  tour:{pos:[80,5,54], look:[62,3.5,36]},
+  build(){
+    const cx=62, cz=36, base=-1, lift=2.45;
+    const prof=[[0,0],[3.2,0],[3.9,.8],[4.4,2.2],[4.72,3.7],[4.86,4.55],[5.0,5.0],[4.83,4.98],[4.7,4.5],[4.55,3.7],[4.23,2.2],[3.73,.95],[3.05,.17],[0,.17]];
+    lathe(prof,72,M.bronze,cx,base+lift,cz,{I:true});
+    const w=mesh(new THREE.CircleGeometry(4.66,64),M.water,cx,base+lift+4.45,cz,{cast:false}); w.rotation.x=-Math.PI/2;
+    const kg=new THREE.SphereGeometry(.05,6,4), im=new THREE.InstancedMesh(kg,M.bronzeDark,600), mx=new THREE.Matrix4();
+    for(let r=0;r<2;r++) for(let i=0;i<300;i++){ const a=i/300*Math.PI*2, y=r?4.2:3.85, rad=r?4.84:4.77; mx.makeTranslation(cx+Math.cos(a)*(rad+.03), base+lift+y, cz+Math.sin(a)*(rad+.03)); im.setMatrixAt(r*300+i,mx); }
+    B.g.add(im);
+    const dirs=[[0,-1],[1,0],[0,1],[-1,0]];
+    for(const [dx,dz] of dirs) for(const off of [-1.55,0,1.55]){
+      const ox=makeOx(M.bronze); const px=cx+dx*2.25+(-dz)*off, pz=cz+dz*2.25+dx*off;
+      ox.position.set(px,base,pz); ox.rotation.y=Math.atan2(-dz,dx); B.g.add(ox);
+      ox.traverse(o=>{ if(o.isMesh) interpMeshes.push(o); });
+    }
+    solid([cx-4.2,cx+4.2],[base,base+lift+5],[cz-4.2,cz+4.2]);
+  }},
+
+{ id:'bases', name:'Ten bases (wheeled stands)', status:'EI',
+  refs:['1 Kings 7:27-37'], aux:[],
+  materials:'Brass',
+  explicit:'Ten bases of brass, each 4 cubits long, 4 broad and 3 high, with borders between the ledges bearing lions, oxen and cherubims, and palm trees; four brasen wheels 1½ cubits high, made like chariot wheels; undersetters at the four corners; a round compass half a cubit high on top.',
+  interp:['One of the hardest passages to reconstruct. The overall size, the panels with lions, oxen and cherubims, the ledges, the chariot-like wheels and the corner undersetters are explicit; how they fit together is interpretive (compare the bronze wheeled stands found on Cyprus at Enkomi and Larnaca).'],
+  dims:[['Length',4],['Breadth',4],['Height',3],['Wheel height',1.5],['Round top',.5]],
+  tour:{pos:[10,2.6,44], look:[0,.6,30]},
+  build(){
+    for(const s of [1,-1]) for(const x of [-24,-12,0,12,24]){
+      const z=s*30, y0=-1;
+      box([x-2,x+2],[y0+1.5,y0+3],[z-2,z+2],M.relief,{solid:false,I:true});
+      for(const [dx,dz] of [[-1,-1],[1,-1],[-1,1],[1,1]]) box([x+dx*2-.18,x+dx*2+.18],[y0,y0+3.1],[z+dz*2-.18,z+dz*2+.18],M.bronze,{solid:false,I:true});
+      for(const yy of [y0+1.5,y0+2.95]) box([x-2.1,x+2.1],[yy-.08,yy+.08],[z-2.1,z+2.1],M.bronze,{solid:false,I:true});
+      for(const [dx,dz] of [[-1.3,-1.6],[1.3,-1.6],[-1.3,1.6],[1.3,1.6]]){
+        const wx=x+dx, wz=z+dz, wy=y0+.75;
+        mesh(new THREE.TorusGeometry(.7,.06,6,22),M.bronze,wx,wy,wz,{I:true});
+        for(let k=0;k<6;k++){ const sp=mesh(new THREE.CylinderGeometry(.03,.03,1.4,5),M.bronze,wx,wy,wz,{I:true}); sp.rotation.z=k*Math.PI/6; }
+        mesh(new THREE.CylinderGeometry(.13,.13,.25,10),M.bronze,wx,wy,wz,{I:true}).rotation.x=Math.PI/2;
+      }
+      for(const dz of [-1.6,1.6]) mesh(new THREE.CylinderGeometry(.06,.06,3,6),M.bronze,x,y0+.75,z+dz,{I:true}).rotation.z=Math.PI/2;
+      lathe([[0,0],[.8,0],[.75,.5],[.85,.5]],20,M.bronze,x,y0+3,z,{I:true});
+      solid([x-2.2,x+2.2],[y0,y0+3.6],[z-2.2,z+2.2]);
+    }
+  }},
+
+{ id:'lavers', name:'Ten lavers', status:'EI',
+  refs:['1 Kings 7:38','1 Kings 7:39','2 Chronicles 4:6'], aux:[],
+  materials:'Brass',
+  explicit:'Ten lavers of brass, each holding 40 baths, each 4 cubits, one upon each base; five on the right side of the house and five on the left. In them they washed such things as they offered for the burnt offering.',
+  interp:['"Every laver was four cubits" is taken as the diameter. The bowl profile is reconstructed.',
+          'Five are placed south of the house and five north. The spacing is reconstructed.'],
+  dims:[['Diameter',4],['Capacity',null,'40 baths ≈ 880 L'],['Number',null,'10']],
+  tour:{pos:[-6,6,41], look:[-12,2.5,30]},
+  build(){
+    for(const s of [1,-1]) for(const x of [-24,-12,0,12,24]){
+      const z=s*30, y=-1+3.5;
+      lathe([[0,0],[.6,0],[1.3,.25],[1.8,.7],[2,1.2],[2.05,1.32],[1.95,1.32],[1.75,.78],[1.2,.36],[0,.12]],40,M.bronze,x,y,z,{I:true});
+      const w=mesh(new THREE.CircleGeometry(1.83,40),M.water,x,y+1.12,z,{cast:false}); w.rotation.x=-Math.PI/2;
+    }
+  }},
+
+{ id:'altar', name:'The altar of brass (burnt offering)', status:'EI',
+  refs:['2 Chronicles 4:1','1 Kings 8:22','1 Kings 8:64','1 Kings 9:25'], aux:['Exodus 20:26','Ezekiel 43:13-17'],
+  materials:'Brass',
+  explicit:'An altar of brass, 20 cubits long, 20 cubits broad and 10 cubits high (2 Chronicles 4:1).',
+  interp:['Only the size is given, and only in Chronicles. The stepped profile, horns, ledge and access ramp are reconstructed. Exodus 20:26 forbids steps up to the (earlier) altar; Ezekiel 43:13–17 describes a stepped altar with stairs facing east. A ramp on the east side is shown.',
+          'Its position in the middle of the court, before the house, is interpretive (compare 1 Kings 8:64).'],
+  dims:[['Length',20],['Breadth',20],['Height',10],['Ramp (shown)',27,'long',true]],
+  tour:{pos:[134,11,26], look:[100,6,0]},
+  build(){
+    const cx=100, b=M.bronze;
+    box([cx-10,cx+10],[-1,2],[-10,10],b,{I:true});
+    box([cx-9,cx+9],[2,6],[-9,9],b,{I:true});
+    box([cx-8,cx+8],[6,9],[-8,8],b,{I:true});
+    for(const [dx,dz] of [[-1,-1],[1,-1],[-1,1],[1,1]]) box([cx+dx*7.5-.5,cx+dx*7.5+.5],[9,10],[dz*7.5-.5,dz*7.5+.5],b,{solid:false,I:true});
+    for(let i=0;i<8;i++){ const l=mesh(new THREE.CylinderGeometry(.35,.35,9,8),M.wood,cx-4+i*1.1,9.3,0,{cast:false}); l.rotation.x=Math.PI/2; }
+    for(let i=0;i<14;i++){ const f=mesh(new THREE.ConeGeometry(.6+rnd()*.5,2+rnd()*2.5,7),M.flame,cx-5+rnd()*10,10.2,-4+rnd()*8,{cast:false}); flames.push(f); f.userData.big=true; }
+    const L=light(0xff8a3a,2.2,40, cx,13,0); L.userData.fire=true;
+    // ramp (visual wedge) + walkable slices
+    const w=27, rg=new THREE.BoxGeometry(w,7,6), p=rg.attributes.position;
+    for(let i=0;i<p.count;i++){ if(p.getY(i)>0 && p.getX(i)>0) p.setY(i,-3.5); }
+    rg.computeVertexNormals(); worldUV(rg,w,7,6,6,6);
+    const rm=mesh(rg,M.stoneRamp,cx+9+w/2,-1+3.5,0,{I:true});
+    const n=54; for(let i=0;i<n;i++){ const x0=cx+9+i*w/n; solids.push({x0,x1:x0+w/n,y0:-1,y1:6-7*(i+.5)/n,z0:-3,z1:3,el:'altar'}); }
+  }},
+
+{ id:'scaffold', name:'The brasen scaffold', status:'EI',
+  refs:['2 Chronicles 6:13'], aux:[],
+  materials:'Brass',
+  explicit:'Solomon made a brasen scaffold, 5 cubits long, 5 broad and 3 high, set in the midst of the court, and stood on it to pray.',
+  interp:['"In the midst of the court": which court, and the exact spot, are not stated. Shown in the great court, east of the inner gate.'],
+  dims:[['Length',5],['Breadth',5],['Height',3]],
+  tour:{pos:[176,3.2,-14], look:[165,.5,-25]},
+  build(){ box([162.5,167.5],[-1,2],[-27.5,-22.5],M.bronze); }}
+];
+
+/* court wall: three rows of hewed stone and a row of cedar beams, gate on the east */
+function courtWall(x0,x1,z0,z1,gate,kind){
+  const t=2, top=-1+3.6;
+  const seg=(X,Z)=>{ box(X,[-1,top],Z,M.stone,{I:true}); box(X,[top,top+.8],Z,M.cedar,{solid:false,I:true}); };
+  seg([x0,x1],[z0,z0+t]); seg([x0,x1],[z1-t,z1]); seg([x0,x0+t],[z0+t,z1-t]);
+  seg([x1-t,x1],[z0+t,-gate]); seg([x1-t,x1],[gate,z1-t]);
+}
+
+const TOUR = ['site','foundation','house','porch','windows','chambers','stairs','roof','lining','oracle','upper','hekal','incense','chains','cherubim','oracleDoors','veil','templeDoors','innerCourt','greatCourt','pillars','sea','bases','lavers','altar','tables','lampstands','vessels','ark','scaffold'];
+const EL = Object.fromEntries(ELEMENTS.map(e=>[e.id,e]));
+
+/* =====================================================================
+   BUILD / REBUILD
+   ===================================================================== */
+let overlayGroup=null, dimsGroup=null, gridHelper=null;
+function clearAll(){
+  while(root.children.length){ const c=root.children.pop(); c.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
+  for(const a of [solids,occluders,pickables,roofs,fades,interpMeshes,lights,flames]) a.length=0;
+}
+function buildAll(){
+  clearAll(); root.scale.setScalar(1); root.updateMatrixWorld(true);
+  for(const e of ELEMENTS){
+    const g=new THREE.Group(); g.name=e.id; root.add(g); elGroups[e.id]=g;
+    B={id:e.id, g}; e.build(); B=null;
+    g.traverse(o=>{ if((o.isMesh||o.isInstancedMesh) && !o.userData.noPick && o.material!==M.flame){ o.userData.el=e.id; pickables.push(o); } });
+  }
+  root.updateMatrixWorld(true);
+  for(const e of ELEMENTS){
+    const b = e.zone ? new THREE.Box3(new THREE.Vector3(e.zone[0],e.zone[1],e.zone[2]), new THREE.Vector3(e.zone[3],e.zone[4],e.zone[5]))
+                     : new THREE.Box3().setFromObject(elGroups[e.id]);
+    elBoxes[e.id]=b;
+  }
+  // overlay for reconstructed parts
+  overlayGroup=new THREE.Group(); overlayGroup.visible=S.interp; root.add(overlayGroup);
+  const om=new THREE.MeshBasicMaterial({color:0xff9b3d,transparent:true,opacity:.38,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  for(const m of interpMeshes){ if(m.isInstancedMesh) continue; const o=new THREE.Mesh(m.geometry,om); m.updateMatrixWorld(true); o.matrixAutoUpdate=false; o.matrix.copy(m.matrixWorld); o.userData.noPick=true; o.userData.src=m; overlayGroup.add(o); }
+  gridHelper=new THREE.GridHelper(420,42,0x5b8fd0,0x33587f); gridHelper.position.set(80,-.9,0); gridHelper.visible=false; root.add(gridHelper);
+  buildDims();
+  root.scale.setScalar(S.C); root.updateMatrixWorld(true);
+  applyToggles();
+}
+
+/* ---------- dimension overlay ---------- */
+function labelSprite(text, h){
+  const fs=64, c=mkCanvas(10,10), g=c.getContext('2d'); g.font=`500 ${fs}px "IBM Plex Mono", monospace`;
+  const w=Math.ceil(g.measureText(text).width)+48; c.width=w; c.height=fs+36;
+  const g2=c.getContext('2d'); g2.fillStyle='rgba(20,16,11,.84)'; g2.fillRect(0,0,w,c.height); g2.strokeStyle='#d6b25e'; g2.lineWidth=3; g2.strokeRect(1.5,1.5,w-3,c.height-3);
+  g2.font=`500 ${fs}px "IBM Plex Mono", monospace`; g2.fillStyle='#f3e3b8'; g2.textBaseline='middle'; g2.fillText(text,24,c.height/2+2);
+  const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding;
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,transparent:true})); s.scale.set(h*w/c.height,h,1); s.renderOrder=10; return s;
+}
+function fmt(c){ const m=c*S.C; return `${+c.toFixed(2)} c · ${m.toFixed(2)} m`; }
+function buildDims(){
+  if(dimsGroup){ root.remove(dimsGroup); dimsGroup.traverse(o=>{ if(o.material&&o.material.map) o.material.map.dispose(); }); }
+  dimsGroup=new THREE.Group(); dimsGroup.visible=S.dims; root.add(dimsGroup);
+  const lm=new THREE.LineBasicMaterial({color:0xf0c860,depthTest:false,transparent:true});
+  const D=(a,b,label,h=1.6,tick=.8)=>{
+    const A=new THREE.Vector3(...a), Bv=new THREE.Vector3(...b), dir=Bv.clone().sub(A), len=dir.length();
+    const n = Math.abs(dir.y)>.5*len ? new THREE.Vector3(1,0,0) : new THREE.Vector3(0,1,0);
+    const pts=[A,Bv, A.clone().addScaledVector(n,tick),A.clone().addScaledVector(n,-tick), Bv.clone().addScaledVector(n,tick),Bv.clone().addScaledVector(n,-tick)];
+    const g=new THREE.BufferGeometry().setFromPoints(pts); const l=new THREE.LineSegments(g,lm); l.renderOrder=9; dimsGroup.add(l);
+    const s=labelSprite(`${label} ${fmt(len)}`,h); s.position.copy(A).lerp(Bv,.5); s.position.y+=h*.7; dimsGroup.add(s);
+  };
+  const H=S.porchH;
+  D([-30,33,-10],[30,33,-10],'House length',2.4); D([0,33,-10],[0,33,10],'breadth',2); D([-37.5,0,0],[-37.5,30,0],'height',2);
+  D([-30,21.4,0],[-10,21.4,0],'Oracle',1.4); D([-10,.4,-8.8],[30,.4,-8.8],'Holy Place',1.4);
+  D([49,H+2.5,-10],[49,H+2.5,10],'Porch',1.8); D([36,H+2.5,-17.5],[46,H+2.5,-17.5],'depth',1.6);
+  D([-20,2.5,16],[-20,2.5,21],'Lower chamber',.8,.4); D([-20,8,15],[-20,8,21],'Middle',.8,.4); D([-20,13.5,14],[-20,13.5,21],'Third',.8,.4);
+  D([54,0,6.2],[54,18,6.2],'Shaft',1.3,.5); D([54,18,6.2],[54,23,6.2],'Chapiter',1.1,.5);
+  D([57,8.5,36],[67,8.5,36],'Sea ⌀',1.2,.5); D([68,1.45,36],[68,6.45,36],'height',1,.5);
+  D([90,11.5,-11.5],[110,11.5,-11.5],'Altar',1.6); D([112,-1,-11],[112,9,-11],'height',1.4);
+  D([-22,-1,33],[-22,2,33],'Base height',.9,.4); D([-26,2.8,33],[-22,2.8,33],'width',.9,.4);
+  D([-20.6,0,-10.4],[-20.6,10,-10.4],'Cherub',1.1,.5); D([-19.5,11,-10],[-19.5,11,10],'Wings',1.3,.6);
+  D([-21.25,2.2,1.4],[-18.75,2.2,1.4],'Ark',.45,.2);
+  D([162.5,3,-29],[167.5,3,-29],'Scaffold',.9,.4);
+  for(const [n,z] of [['JACHIN',6.2],['BOAZ',-6.2]]){ const s=labelSprite(n,1.4); s.position.set(50.5,25.5,z); dimsGroup.add(s); }
+}
+
+/* =====================================================================
+   TOGGLES
+   ===================================================================== */
+function applyToggles(){
+  const cut=S.cut||S.blue;
+  for(const m of roofs) m.visible=!cut;
+  for(const m of fades){ m.visible=!S.blue; m.material.opacity = S.cut?0.22:1; m.material.depthWrite=!S.cut; }
+  if(overlayGroup){ overlayGroup.visible=S.interp; overlayGroup.children.forEach(o=>{ o.visible=o.userData.src.visible && (o.userData.src.parent?o.userData.src.parent.visible:true); }); }
+  if(dimsGroup) dimsGroup.visible=S.dims||S.blue;
+  if(gridHelper) gridHelper.visible=S.blue;
+  setPressed('bCut',S.cut); setPressed('bBlue',S.blue); setPressed('bDims',S.dims); setPressed('bInterp',S.interp);
+  setPressed('bVerse',S.verse); setPressed('bLamp',S.lamp); setPressed('bSound',S.sound); setPressed('bView',S.third);
+  document.getElementById('viewLabel').textContent = S.third ? 'Third person (on)' : 'Third person';
+  document.getElementById('bpnote').hidden=!S.blue;
+  playerFig.visible = S.third && !S.blue && !tour.on;
+}
+function setPressed(id,v){ const b=document.getElementById(id); if(b) b.setAttribute('aria-pressed',String(!!v)); }
+
+/* =====================================================================
+   PLAYER, COLLISION, CAMERA
+   ===================================================================== */
+const player={ pos:new THREE.Vector3(), yaw:Math.PI/2, pitch:0, vy:0, feet:-1 };
+const EYE=1.62, RADIUS=.32, STEP=.55, HEAD=1.8;
+let tpDist=4.5;
+const playerFig=(()=>{ const g=new THREE.Group();
+  const robe=new THREE.Mesh(new THREE.LatheGeometry([[0,0],[.34,0],[.3,.6],[.24,1.25],[.2,1.42],[0,1.44]].map(p=>new THREE.Vector2(p[0],p[1])),20), new THREE.MeshStandardMaterial({color:0xe9e2d0,roughness:.9}));
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.13,16,12), new THREE.MeshStandardMaterial({color:0xb8865e,roughness:.8})); head.position.y=1.6;
+  const hood=new THREE.Mesh(new THREE.SphereGeometry(.155,16,12,0,Math.PI*2,0,Math.PI*.55), robe.material); hood.position.y=1.61;
+  g.add(robe,head,hood); g.traverse(o=>{ if(o.isMesh){o.castShadow=true;} }); scene.add(g); return g; })();
+
+function cubitPos(){ return player.pos.clone().divideScalar(S.C); }
+function groundAt(xc,zc,feetC,stepC){
+  let g=-1; for(const s of solids){ if(xc>=s.x0&&xc<=s.x1&&zc>=s.z0&&zc<=s.z1 && s.y1<=feetC+stepC+1e-4 && s.y1>g) g=s.y1; } return g;
+}
+function blocked(xc,zc,feetC){
+  const r=RADIUS/S.C, step=STEP/S.C, head=HEAD/S.C;
+  for(const s of solids){ if(s.y1<=feetC+step || s.y0>=feetC+head) continue;
+    if(xc>s.x0-r && xc<s.x1+r && zc>s.z0-r && zc<s.z1+r) return true; }
+  return false;
+}
+function setPlayerCubits(x,z,yaw,pitch){ player.pos.set(x*S.C,0,z*S.C); const g=groundAt(x,z,999,0); player.feet=g; player.pos.y=g*S.C; if(yaw!=null) player.yaw=yaw; if(pitch!=null) player.pitch=pitch; }
+
+const keys={}; let joy={x:0,y:0};
+function updatePlayer(dt){
+  let f=0,s=0;
+  if(keys.KeyW||keys.ArrowUp) f+=1; if(keys.KeyS||keys.ArrowDown) f-=1; if(keys.KeyD) s+=1; if(keys.KeyA) s-=1;
+  if(keys.ArrowLeft) player.yaw+=1.8*dt; if(keys.ArrowRight) player.yaw-=1.8*dt;
+  f+= -joy.y; s+= joy.x;
+  const run = keys.ShiftLeft||keys.ShiftRight||S.run;
+  const sp=(run?7.5:3.2)*dt, len=Math.hypot(f,s)||1, k=Math.min(1,Math.hypot(f,s))/len;
+  const fx=-Math.sin(player.yaw), fz=-Math.cos(player.yaw), rx=Math.cos(player.yaw), rz=-Math.sin(player.yaw);
+  const dx=(fx*f+rx*s)*k*sp/S.C, dz=(fz*f+rz*s)*k*sp/S.C;
+  const p=cubitPos(), feet=player.feet;
+  if(dx && !blocked(p.x+dx,p.z,feet)) p.x+=dx;
+  if(dz && !blocked(p.x,p.z+dz,feet)) p.z+=dz;
+  const g=groundAt(p.x,p.z,feet,STEP/S.C);
+  if(g>=feet){ player.feet=g; player.vy=0; }
+  else { player.vy-=9.8*dt/S.C; player.feet=Math.max(g, feet+player.vy*dt); if(player.feet===g) player.vy=0; }
+  player.pos.set(p.x*S.C, player.feet*S.C, p.z*S.C);
+  if(f||s) { if(pinned && pinned.from.distanceTo(player.pos)>4) pinned=null; }
+}
+const ray=new THREE.Raycaster();
+function placeCamera(){
+  if(tour.on){ cam.position.copy(tour.pose.pos); cam.rotation.set(tour.pose.pitch,tour.pose.yaw,0); return; }
+  const eye=new THREE.Vector3(player.pos.x, player.pos.y+EYE, player.pos.z);
+  playerFig.position.copy(player.pos); playerFig.rotation.y=player.yaw;
+  if(!S.third){ cam.position.copy(eye); cam.rotation.set(player.pitch,player.yaw,0); return; }
+  const back=new THREE.Vector3(Math.sin(player.yaw)*Math.cos(player.pitch), -Math.sin(player.pitch), Math.cos(player.yaw)*Math.cos(player.pitch));
+  let d=tpDist; ray.set(eye,back); ray.far=tpDist; const hit=ray.intersectObjects(occluders,false)[0]; if(hit) d=Math.max(.4,hit.distance-.25);
+  cam.position.copy(eye).addScaledVector(back,d).add(new THREE.Vector3(0,.25,0)); cam.rotation.set(player.pitch,player.yaw,0);
+}
+function lookAngles(from,to){ const d=to.clone().sub(from); return {yaw:Math.atan2(-d.x,-d.z), pitch:Math.atan2(d.y,Math.hypot(d.x,d.z))}; }
+
+/* ---------- zone lighting (eye adaptation) ---------- */
+const ZONES={ outside:{hemi:.5,sun:2.4,exp:.86,env:.8,lamp:0,name:null}, porch:{hemi:.4,sun:2.4,exp:1.1,env:.75,lamp:.2,name:'The porch'},
+  hekal:{hemi:.13,sun:2.4,exp:1.15,env:.42,lamp:.8,name:'The Holy Place'}, oracle:{hemi:.03,sun:2.4,exp:1.45,env:.1,lamp:1.5,name:'The Most Holy Place'} };
+const cur={hemi:.55,exp:1,env:1,lamp:0};
+function zoneAt(p){ // p in cubits
+  if(S.cut||S.blue) return 'outside';
+  if(p.y<20 && p.x>-30 && p.x<-10 && Math.abs(p.z)<10) return 'oracle';
+  if(p.y<30 && p.x>=-10 && p.x<30.5 && Math.abs(p.z)<10) return 'hekal';
+  if(p.x>=30.5 && p.x<48 && Math.abs(p.z)<10 && p.y<S.porchH) return 'porch';
+  return 'outside';
+}
+function zoneName(p){
+  const z=zoneAt(p); if(ZONES[z].name) return ZONES[z].name;
+  if(p.x>-62&&p.x<152&&Math.abs(p.z)<57) return 'The inner court';
+  if(p.x>-112&&p.x<272&&Math.abs(p.z)<122) return 'The great court';
+  return 'Mount Moriah';
+}
+let allMats=null;
+function updateLighting(dt){
+  const p=cam.position.clone().divideScalar(S.C), Z=ZONES[zoneAt(p)], k=1-Math.exp(-dt*3);
+  cur.hemi+=(Z.hemi-cur.hemi)*k; cur.exp+=(Z.exp-cur.exp)*k; cur.env+=(Z.env-cur.env)*k; cur.lamp+=((S.lamp?Z.lamp:0)-cur.lamp)*k;
+  hemi.intensity=cur.hemi; renderer.toneMappingExposure=cur.exp; lampLight.intensity=cur.lamp; lampLight.position.copy(cam.position);
+  if(!allMats){ allMats=new Set(); root.traverse(o=>{ if(o.material && o.material.isMeshStandardMaterial) allMats.add(o.material); }); }
+  for(const m of allMats) m.envMapIntensity=cur.env;
+}
+
+/* =====================================================================
+   PICKING, PROXIMITY, VERSE PANEL
+   ===================================================================== */
+let pinned=null, shownId=null, nearId=null;
+function pickAt(nx,ny){
+  ray.setFromCamera({x:nx,y:ny}, S.blue?ortho:cam); ray.far=Infinity;
+  const hits=ray.intersectObjects(pickables,false);
+  for(const h of hits){ let o=h.object; if(!o.visible) continue; let vis=true, q=o; while(q){ if(!q.visible){vis=false;break;} q=q.parent; } if(!vis) continue; const id=o.userData.el; if(id){ return id; } }
+  return null;
+}
+function selectEl(id, how){ if(!id) return; pinned={id, from:player.pos.clone()}; showPanel(id); }
+function nearestEl(){
+  const p=cubitPos(); p.y=player.feet+1; let best=null, bestV=Infinity;
+  const margin=2.2/S.C;
+  for(const e of ELEMENTS){ if(e.noNear) continue; const b=elBoxes[e.id]; if(!b) continue;
+    const size=b.getSize(new THREE.Vector3()), vol=size.x*size.y*size.z, small=vol<4000;
+    const d=b.distanceToPoint(p); if(d<= (small?margin:0) && vol<bestV){ bestV=vol; best=e.id; } }
+  return best;
+}
+const promptEl=document.getElementById('prompt');
+function updateProximity(){
+  if(tour.on || S.blue){ promptEl.hidden=true; return; }
+  nearId=nearestEl();
+  if(nearId){ promptEl.hidden=false; promptEl.innerHTML=`<b>${EL[nearId].name}</b> · ${isTouch?'tap READ':'press E'} to read`; } else promptEl.hidden=true;
+  if(pinned) return;
+  if(S.verse && nearId && nearId!==shownId) showPanel(nearId);
+}
+const panel=document.getElementById('panel');
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function refRange(list){ // compress for header
+  const out=[]; let prev=null;
+  for(const r of list.flatMap(expandRef)){ const m=r.match(/^(.+) (\d+):(\d+)$/); const key=m[1]+' '+m[2], v=+m[3];
+    if(prev && prev.key===key && v===prev.last+1){ prev.last=v; } else { prev={key,first:v,last:v}; out.push(prev); } }
+  return out.map(p=>`${p.key}:${p.first}${p.last>p.first?'–'+p.last:''}`).join(' · ');
+}
+function showPanel(id){
+  const e=EL[id]; if(!e) return; shownId=id;
+  document.getElementById('pRefs').textContent=refRange(e.refs);
+  document.getElementById('pName').textContent=e.name;
+  const badges=[]; if(e.status!=='I') badges.push('<span class="badge e">EXPLICIT IN TEXT</span>'); if(e.status!=='E') badges.push('<span class="badge i">INTERPRETED / RECONSTRUCTED</span>');
+  document.getElementById('pBadges').innerHTML=badges.join('');
+  const dims=typeof e.dims==='function'?e.dims():e.dims;
+  let h='';
+  h+=`<h3>${e.status==='I'?'What the text says':'Explicit in the text'}</h3><div class="explicit-box">${esc(e.explicit)}</div>`;
+  if(dims.length){ h+=`<h3>Dimensions · 1 cubit = ${S.C} m</h3><table class="dims"><tbody>`;
+    for(const [label,c,note,flag] of dims){
+      h+= c==null ? `<tr><td>${esc(label)}${flag?'<span class="tag">INTERPRETED</span>':''}</td><td colspan="2" class="note">${esc(note||'')}</td></tr>`
+                  : `<tr><td>${esc(label)}${flag?'<span class="tag">INTERPRETED</span>':''}</td><td>${+c.toFixed(2)} c${note?' '+esc(note):''}</td><td>${(c*S.C).toFixed(2)} m</td></tr>`; }
+    h+='</tbody></table>'; }
+  h+=`<h3>Material</h3><p class="lede">${esc(e.materials)}</p>`;
+  h+=`<h3>The text · KJV</h3>`;
+  for(const r of e.refs.flatMap(expandRef)) if(KJV[r]) h+=`<blockquote class="verse"><p>${esc(KJV[r])}</p><cite>${esc(r)} (KJV)</cite></blockquote>`;
+  if(e.aux && e.aux.length){ h+=`<h3>Related texts used for comparison</h3>`; for(const r of e.aux.flatMap(expandRef)) if(KJV[r]) h+=`<blockquote class="verse aux"><p>${esc(KJV[r])}</p><cite>${esc(r)} (KJV)</cite></blockquote>`; }
+  if(e.interp && e.interp.length){ h+=`<h3>Interpreted / reconstructed</h3><ul class="interp">${e.interp.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`; }
+  document.getElementById('pBody').innerHTML=h; document.getElementById('pBody').scrollTop=0;
+  panel.hidden=false; document.body.classList.add('panel-open');
+}
+function closePanel(){ panel.hidden=true; document.body.classList.remove('panel-open'); shownId=null; pinned={id:null, from:player.pos.clone()}; }
+document.getElementById('closePanel').onclick=closePanel;
+
+/* =====================================================================
+   GUIDED TOUR
+   ===================================================================== */
+const tour={on:false,i:0,pose:{pos:new THREE.Vector3(),yaw:0,pitch:0},anim:null,auto:false,timer:0,savedCut:false};
+function tourPoseFor(id){ const t=EL[id].tour, p=new THREE.Vector3(...t.pos).multiplyScalar(S.C), l=new THREE.Vector3(...t.look).multiplyScalar(S.C); return {pos:p, ...lookAngles(p,l)}; }
+function startTour(i=0){
+  if(S.blue){ S.blue=false; }
+  if(!tour.on){ tour.savedCut=S.cut; tour.pose.pos.copy(cam.position); tour.pose.yaw=cam.rotation.y; tour.pose.pitch=cam.rotation.x; }
+  tour.on=true; document.exitPointerLock&&document.exitPointerLock(); goStop(i); document.getElementById('tourbar').hidden=false; setPressed('bTour',true); applyToggles();
+}
+function goStop(i){
+  tour.i=(i+TOUR.length)%TOUR.length; const id=TOUR[tour.i], to=tourPoseFor(id);
+  let dy=to.yaw-tour.pose.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy));
+  tour.anim={from:{pos:tour.pose.pos.clone(),yaw:tour.pose.yaw,pitch:tour.pose.pitch}, to:{pos:to.pos,yaw:tour.pose.yaw+dy,pitch:to.pitch}, t:0, dur:reduceMotion?0.01:2.6};
+  S.cut = EL[id].tour.cut ? true : tour.savedCut; applyToggles();
+  pinned={id, from:player.pos.clone()}; showPanel(id); tour.timer=0;
+  document.getElementById('tInfo').innerHTML=`<b>${esc(EL[id].name)}</b>Stop ${tour.i+1} of ${TOUR.length} · ${esc(refRange(EL[id].refs).split(' · ')[0])}`;
+}
+function endTour(walk){
+  if(walk){ const p=tour.pose.pos.clone().divideScalar(S.C); let x=p.x,z=p.z; const feet=groundAt(x,z,999,0);
+    if(blocked(x,z,feet)){ x=Math.min(Math.max(x,-110),270); }
+    setPlayerCubits(x,z,tour.pose.yaw,Math.max(-.6,Math.min(.6,tour.pose.pitch))); }
+  tour.on=false; S.cut=tour.savedCut; document.getElementById('tourbar').hidden=true; setPressed('bTour',false); pinned={id:shownId,from:player.pos.clone()}; applyToggles();
+}
+function updateTour(dt){
+  const a=tour.anim; if(a){ a.t=Math.min(1,a.t+dt/a.dur); const k=a.t<.5?4*a.t*a.t*a.t:1-Math.pow(-2*a.t+2,3)/2;
+    tour.pose.pos.lerpVectors(a.from.pos,a.to.pos,k); tour.pose.yaw=a.from.yaw+(a.to.yaw-a.from.yaw)*k; tour.pose.pitch=a.from.pitch+(a.to.pitch-a.from.pitch)*k; if(a.t>=1) tour.anim=null; }
+  if(tour.auto && !tour.anim){ tour.timer+=dt; if(tour.timer>11) goStop(tour.i+1); }
+}
+document.getElementById('tPrev').onclick=()=>goStop(tour.i-1);
+document.getElementById('tNext').onclick=()=>goStop(tour.i+1);
+document.getElementById('tExit').onclick=()=>endTour(false);
+document.getElementById('tWalk').onclick=()=>endTour(true);
+document.getElementById('tAuto').onclick=e=>{ tour.auto=!tour.auto; e.currentTarget.setAttribute('aria-pressed',tour.auto); e.currentTarget.textContent=tour.auto?'Auto ✓':'Auto'; };
+
+/* =====================================================================
+   BLUEPRINT CAMERA
+   ===================================================================== */
+const bp={cx:30,cz:0,span:150};
+function placeOrtho(){
+  const a=innerWidth/innerHeight, h=bp.span*S.C/2;
+  Object.assign(ortho,{left:-h*a,right:h*a,top:h,bottom:-h}); ortho.updateProjectionMatrix();
+  ortho.position.set(bp.cx*S.C,400,bp.cz*S.C); ortho.up.set(0,0,-1); ortho.lookAt(bp.cx*S.C,0,bp.cz*S.C);
+}
+
+/* =====================================================================
+   MINI-MAP
+   ===================================================================== */
+const mini=document.getElementById('mini'), mg=mini.getContext('2d');
+function drawMini(){
+  const W=mini.width, sc=W/150, p=S.blue?new THREE.Vector3(bp.cx,0,bp.cz):(tour.on?tour.pose.pos.clone().divideScalar(S.C):cubitPos());
+  mg.setTransform(1,0,0,1,0,0); mg.clearRect(0,0,W,W);
+  mg.save(); mg.beginPath(); mg.arc(W/2,W/2,W/2-2,0,7); mg.clip();
+  mg.fillStyle='#1b1610'; mg.fillRect(0,0,W,W);
+  mg.translate(W/2,W/2); mg.scale(sc,sc); mg.translate(-p.x,-p.z);
+  mg.fillStyle='rgba(214,178,94,.08)'; mg.fillRect(-30,-10,60,20);
+  for(const s of solids){ if(s.y1<.8 || (s.x1-s.x0)*(s.z1-s.z0)<.3) continue;
+    const el=s.el; mg.fillStyle = el==='house'||el==='porch'?'#b9a57e': el==='chambers'?'#7d6c50': el==='innerCourt'||el==='greatCourt'?'#8d7d60': el==='oracle'?'#d6b25e': el==='altar'||el==='sea'||el==='bases'||el==='pillars'||el==='scaffold'?'#b98252':'#d6b25e';
+    mg.fillRect(s.x0,s.z0,s.x1-s.x0,s.z1-s.z0); }
+  mg.restore();
+  // player marker (centre)
+  const yaw = tour.on?tour.pose.yaw:player.yaw;
+  mg.save(); mg.translate(W/2,W/2); mg.rotate(-yaw);
+  mg.fillStyle='rgba(255,236,190,.16)'; mg.beginPath(); mg.moveTo(0,0); mg.arc(0,0,64,-Math.PI/2-.55,-Math.PI/2+.55); mg.closePath(); mg.fill();
+  if(!S.blue){ mg.fillStyle='#fff3d4'; mg.beginPath(); mg.moveTo(0,-11); mg.lineTo(7,8); mg.lineTo(0,4); mg.lineTo(-7,8); mg.closePath(); mg.fill(); }
+  mg.restore();
+  mg.fillStyle='#d6b25e'; mg.font='600 20px "IBM Plex Sans", sans-serif'; mg.textAlign='center'; mg.fillText('N',W/2,26);
+}
+
+/* =====================================================================
+   SOUND (optional, generated)
+   ===================================================================== */
+let AC=null, windGain=null, fireGain=null;
+function initSound(){
+  AC=new (window.AudioContext||window.webkitAudioContext)();
+  const len=AC.sampleRate*4, buf=AC.createBuffer(1,len,AC.sampleRate), d=buf.getChannelData(0); let last=0;
+  for(let i=0;i<len;i++){ const w=Math.random()*2-1; last=(last+.02*w)/1.02; d[i]=last*3.5; }
+  const src=AC.createBufferSource(); src.buffer=buf; src.loop=true; const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=420;
+  windGain=AC.createGain(); windGain.gain.value=0; src.connect(lp).connect(windGain).connect(AC.destination); src.start();
+  const fb=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate), fd=fb.getChannelData(0);
+  for(let i=0;i<fd.length;i++) fd[i]=(Math.random()<.0025?(Math.random()*2-1):0)+ (Math.random()*2-1)*.05;
+  const fs=AC.createBufferSource(); fs.buffer=fb; fs.loop=true; const bp_=AC.createBiquadFilter(); bp_.type='bandpass'; bp_.frequency.value=1800;
+  fireGain=AC.createGain(); fireGain.gain.value=0; fs.connect(bp_).connect(fireGain).connect(AC.destination); fs.start();
+}
+function updateSound(){
+  if(!AC) return; const p=cam.position.clone().divideScalar(S.C), z=zoneAt(p);
+  const on=S.sound?1:0, wind=(z==='outside'?.05:z==='porch'?.03:.008)*on;
+  const dAlt=Math.hypot(p.x-100,p.z)*S.C, fire=Math.max(0,1-dAlt/40)*.5*on;
+  windGain.gain.setTargetAtTime(wind,AC.currentTime,.5); fireGain.gain.setTargetAtTime(fire,AC.currentTime,.3);
+}
+
+/* =====================================================================
+   INPUT
+   ===================================================================== */
+const isTouch = matchMedia('(pointer:coarse)').matches || ('ontouchstart' in window);
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function look(dx,dy){ const t=tour.on?tour.pose:player; t.yaw-=dx; t.pitch=Math.max(-1.45,Math.min(1.45,t.pitch-dy)); }
+let drag=null;
+canvas.addEventListener('pointerdown',e=>{ canvas.focus(); drag={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,moved:false,id:e.pointerId,type:e.pointerType}; });
+addEventListener('pointermove',e=>{
+  if(document.pointerLockElement===canvas){ look(e.movementX*.0022,e.movementY*.0022); return; }
+  if(!drag||drag.id!==e.pointerId) return;
+  const dx=e.clientX-drag.x, dy=e.clientY-drag.y; drag.x=e.clientX; drag.y=e.clientY;
+  if(Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>5) drag.moved=true;
+  if(S.blue){ const k=bp.span/innerHeight; bp.cx-=dx*k; bp.cz-=dy*k; return; }
+  look(dx*.004,dy*.004);
+});
+addEventListener('pointerup',e=>{
+  if(!drag||drag.id!==e.pointerId) return; const d=drag; drag=null;
+  if(d.moved) return;
+  if(document.pointerLockElement===canvas){ selectEl(pickAt(0,0)); return; }
+  const nx=(e.clientX/innerWidth)*2-1, ny=-(e.clientY/innerHeight)*2+1;
+  const id=pickAt(nx,ny), bg=!id||['site','greatCourt','innerCourt','foundation'].includes(id);
+  if(id && (!bg || isTouch || S.blue || tour.on || d.type!=='mouse')) selectEl(id);
+  else if(!isTouch && !S.blue && !tour.on && d.type==='mouse' && canvas.requestPointerLock){ try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{}); }catch(_){} }
+});
+document.addEventListener('pointerlockchange',()=>{ document.getElementById('cross').hidden = document.pointerLockElement!==canvas; });
+canvas.addEventListener('wheel',e=>{ e.preventDefault(); if(S.blue){ bp.span=Math.max(30,Math.min(520,bp.span*Math.exp(e.deltaY*.0012))); } else if(S.third){ tpDist=Math.max(1.5,Math.min(60,tpDist*Math.exp(e.deltaY*.0012))); } },{passive:false});
+// pinch zoom for blueprint / third person
+let pinch=null; const tps=new Map();
+canvas.addEventListener('touchstart',e=>{ if(e.touches.length===2){ pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); drag=null; } },{passive:true});
+canvas.addEventListener('touchmove',e=>{ if(e.touches.length===2&&pinch){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY), r=pinch/d; pinch=d;
+  if(S.blue) bp.span=Math.max(30,Math.min(520,bp.span*r)); else if(S.third) tpDist=Math.max(1.5,Math.min(60,tpDist*r)); } },{passive:true});
+canvas.addEventListener('touchend',()=>{ pinch=null; },{passive:true});
+
+const HOT={ KeyV:()=>toggle('third'), KeyC:()=>toggle('cut'), KeyB:()=>toggleBlue(), KeyM:()=>toggle('dims'), KeyI:()=>toggle('interp'),
+  KeyT:()=> tour.on?endTour(false):startTour(0), KeyR:()=>toggle('verse'), KeyL:()=>toggle('lamp'), KeyN:()=>toggleSound(), KeyH:()=>showIntro(true),
+  KeyE:()=>{ const id=nearId||pickAt(0,0); if(id) selectEl(id); }, KeyK:()=>setCubit(S.cubit==='standard'?'long':'standard'),
+  Escape:()=>{ if(!document.getElementById('intro').hidden) showIntro(false); else if(!panel.hidden) closePanel(); else if(tour.on) endTour(false); },
+  BracketRight:()=>tour.on&&goStop(tour.i+1), BracketLeft:()=>tour.on&&goStop(tour.i-1) };
+addEventListener('keydown',e=>{
+  if(e.target && (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')) return;
+  if(!document.getElementById('intro').hidden && e.code!=='Escape' && e.code!=='Enter') return;
+  if(e.code==='Enter' && !document.getElementById('intro').hidden){ showIntro(false); return; }
+  if(HOT[e.code] && !e.repeat && !e.metaKey && !e.ctrlKey){ HOT[e.code](); }
+  if(tour.on && e.code==='Space'){ goStop(tour.i+1); e.preventDefault(); }
+  if(tour.on && ['KeyW','KeyA','KeyS','KeyD'].includes(e.code)){ endTour(true); }
+  keys[e.code]=true; if(e.code.startsWith('Arrow')||e.code==='Space') e.preventDefault();
+});
+addEventListener('keyup',e=>{ keys[e.code]=false; });
+addEventListener('blur',()=>{ for(const k in keys) keys[k]=false; });
+
+function toggle(k){ S[k]=!S[k]; if(k==='verse' && !S.verse){ pinned=null; } applyToggles(); }
+function toggleBlue(){ S.blue=!S.blue; if(S.blue){ if(tour.on) endTour(false); const p=cubitPos(); bp.cx=p.x; bp.cz=p.z; document.exitPointerLock&&document.exitPointerLock(); } applyToggles(); }
+function toggleSound(){ S.sound=!S.sound; if(S.sound&&!AC) initSound(); if(AC&&AC.state==='suspended') AC.resume(); applyToggles(); }
+function setCubit(v){
+  const r=CUBITS[v]/S.C; S.cubit=v; S.C=CUBITS[v];
+  player.pos.multiplyScalar(r); if(tour.on){ tour.pose.pos.multiplyScalar(r); if(tour.anim){ tour.anim.from.pos.multiplyScalar(r); tour.anim.to.pos.multiplyScalar(r);} }
+  root.scale.setScalar(1); buildDims(); root.scale.setScalar(S.C); root.updateMatrixWorld(true); placeSun();
+  for(const l of lights) l.distance*= r;
+  document.querySelectorAll('#segCubit button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===v)));
+  applyToggles(); if(shownId) showPanel(shownId);
+}
+function setPorch(h){
+  S.porchH=+h; allMats=null; buildAll();
+  document.querySelectorAll('#segPorch button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===S.porchH)));
+  if(shownId) showPanel(shownId);
+}
+
+// buttons
+const on=(id,fn)=>document.getElementById(id).addEventListener('click',fn);
+on('bView',()=>toggle('third')); on('bCut',()=>toggle('cut')); on('bBlue',toggleBlue); on('bDims',()=>toggle('dims')); on('bInterp',()=>toggle('interp'));
+on('bTour',()=> tour.on?endTour(false):startTour(0)); on('bVerse',()=>toggle('verse')); on('bLamp',()=>toggle('lamp')); on('bSound',toggleSound); on('bHelp',()=>showIntro(true));
+document.querySelectorAll('#segCubit button').forEach(b=>b.addEventListener('click',()=>setCubit(b.dataset.v)));
+document.querySelectorAll('#segPorch button').forEach(b=>b.addEventListener('click',()=>setPorch(b.dataset.v)));
+on('menuBtn',e=>{ const t=document.getElementById('tools'); const o=t.classList.toggle('open'); e.currentTarget.setAttribute('aria-expanded',o); });
+// model switcher
+const modelsEl=document.getElementById('models');
+for(const [k,m] of Object.entries(MODELS)){ const b=document.createElement('button'); b.textContent=m.name; b.title=m.sources; b.setAttribute('aria-pressed',String(k===S.model));
+  if(!m.ready){ b.disabled=true; const s=document.createElement('span'); s.textContent='planned'; b.appendChild(s); } modelsEl.appendChild(b); }
+
+// intro
+function showIntro(v){ document.getElementById('intro').hidden=!v; setPressed('bHelp',v); if(v) document.exitPointerLock&&document.exitPointerLock(); }
+on('startBtn',()=>{ showIntro(false); canvas.focus(); });
+on('startTour',()=>{ showIntro(false); startTour(0); });
+
+// touch controls
+if(isTouch){
+  document.getElementById('touch').hidden=false;
+  const stick=document.getElementById('stick'), knob=document.getElementById('knob'); let sid=null, c0=null;
+  stick.addEventListener('pointerdown',e=>{ sid=e.pointerId; stick.setPointerCapture(sid); const r=stick.getBoundingClientRect(); c0={x:r.left+r.width/2,y:r.top+r.height/2}; e.stopPropagation(); });
+  stick.addEventListener('pointermove',e=>{ if(e.pointerId!==sid) return; let dx=e.clientX-c0.x, dy=e.clientY-c0.y; const d=Math.hypot(dx,dy), m=46; if(d>m){ dx*=m/d; dy*=m/d; }
+    knob.style.transform=`translate(${dx}px,${dy}px)`; joy.x=dx/m; joy.y=dy/m; if(tour.on&&d>20) endTour(true); });
+  const end=e=>{ if(e.pointerId!==sid) return; sid=null; joy.x=joy.y=0; knob.style.transform=''; };
+  stick.addEventListener('pointerup',end); stick.addEventListener('pointercancel',end);
+  on('tbRun',e=>{ S.run=!S.run; e.currentTarget.setAttribute('aria-pressed',S.run); });
+  on('tbRead',()=>{ const id=nearId||pickAt(0,0); if(id) selectEl(id); });
+  on('tbView',()=>toggle('third'));
+}
+
+/* =====================================================================
+   MAIN LOOP
+   ===================================================================== */
+function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); placeOrtho(); }
+addEventListener('resize',resize);
+let last=performance.now(), tAcc=0;
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now; tAcc+=dt;
+  if(tour.on) updateTour(dt); else if(!S.blue && document.getElementById('intro').hidden) updatePlayer(dt);
+  placeCamera(); updateLighting(dt); updateProximity(); updateSound();
+  if(!reduceMotion){ for(const f of flames){ const s=1+Math.sin(tAcc*(f.userData.big?7:11)+f.position.x*3+f.position.z)*.12; f.scale.set(1,s,1); }
+    for(const l of lights) if(l.userData.fire) l.intensity=2+Math.sin(tAcc*9)*.3+Math.sin(tAcc*23)*.15; }
+  playerFig.visible = S.third && !S.blue && !tour.on;
+  if(S.blue){ placeOrtho(); renderer.render(scene,ortho); } else renderer.render(scene,cam);
+  drawMini();
+  document.getElementById('zone').textContent = S.blue ? 'Blueprint' : zoneName(cam.position.clone().divideScalar(S.C));
+  requestAnimationFrame(frame);
+}
+
+/* ---------- boot ---------- */
+T=makeTextures(); makeMaterials(); buildSkyAndEnv(); buildAll(); placeSun();
+setPlayerCubits(232,0,Math.PI/2,0.04);
+resize(); requestAnimationFrame(frame);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ root.scale.setScalar(1); buildDims(); root.scale.setScalar(S.C); root.updateMatrixWorld(true); applyToggles(); });
+</script>
+
+</body>
+</html>
