@@ -254,7 +254,7 @@ const MODELS = {
 };
 
 const CUBITS = { standard:0.45, long:0.525 };
-const S = { model:'solomon', cubit:'standard', C:0.45, porchH:20, third:false, cut:false, blue:false, dims:false,
+const S = { model:'solomon', cubit:'standard', C:0.45, porchH:20, third:true, cut:false, blue:false, dims:false,
             interp:false, verse:true, lamp:true, sound:false, run:false };
 
 function expandRef(ref){
@@ -1228,13 +1228,94 @@ function setPressed(id,v){ const b=document.getElementById(id); if(b) b.setAttri
    ===================================================================== */
 const player={ pos:new THREE.Vector3(), yaw:Math.PI/2, pitch:0, vy:0, feet:-1 };
 const EYE=1.62, RADIUS=.32, STEP=.55, HEAD=1.8;
-let tpDist=4.5;
-const playerFig=(()=>{ const g=new THREE.Group();
-  const robe=new THREE.Mesh(new THREE.LatheGeometry([[0,0],[.34,0],[.3,.6],[.24,1.25],[.2,1.42],[0,1.44]].map(p=>new THREE.Vector2(p[0],p[1])),20), new THREE.MeshStandardMaterial({color:0xe9e2d0,roughness:.9}));
-  const head=new THREE.Mesh(new THREE.SphereGeometry(.13,16,12), new THREE.MeshStandardMaterial({color:0xb8865e,roughness:.8})); head.position.y=1.6;
-  const hood=new THREE.Mesh(new THREE.SphereGeometry(.155,16,12,0,Math.PI*2,0,Math.PI*.55), robe.material); hood.position.y=1.61;
-  g.add(robe,head,hood); g.traverse(o=>{ if(o.isMesh){o.castShadow=true;} }); scene.add(g); return g; })();
-
+let tpDist=3.6;
+/* ---------- the visitor: an articulated figure (hips → legs/knees/feet, shoulders → elbows/hands) ---------- */
+const figMat={
+  skin:new THREE.MeshStandardMaterial({color:0xa8744c,roughness:.75}),
+  tunic:new THREE.MeshStandardMaterial({color:0xd9ccb0,roughness:.95}),
+  cloak:new THREE.MeshStandardMaterial({color:0x6f5134,roughness:.95,side:THREE.DoubleSide}),
+  sash:new THREE.MeshStandardMaterial({color:0x2f3f78,roughness:.85}),
+  hair:new THREE.MeshStandardMaterial({color:0x2a1c12,roughness:1}),
+  leather:new THREE.MeshStandardMaterial({color:0x4a3220,roughness:.9}),
+  eye:new THREE.MeshStandardMaterial({color:0x1a120c,roughness:.4})
+};
+const rig={};
+const playerFig=(()=>{
+  const g=new THREE.Group(), M_=(geo,m,x=0,y=0,z=0,p)=>{ const o=new THREE.Mesh(geo,m); o.position.set(x,y,z); o.castShadow=true; o.receiveShadow=true; (p||g).add(o); return o; };
+  const J=(p,x,y,z)=>{ const j=new THREE.Group(); j.position.set(x,y,z); p.add(j); return j; };
+  const hips=J(g,0,.93,0); rig.hips=hips;
+  // legs: hip joint → thigh → knee → shin → ankle → sandal  (figure faces −z)
+  for(const [side,sx] of [['L',-1],['R',1]]){
+    const hip=J(hips,sx*.095,0,0);
+    M_(new THREE.CylinderGeometry(.068,.056,.44,10),figMat.skin,0,-.22,0,hip);
+    const knee=J(hip,0,-.44,0);
+    M_(new THREE.SphereGeometry(.056,10,8),figMat.skin,0,0,0,knee);
+    M_(new THREE.CylinderGeometry(.052,.04,.42,10),figMat.skin,0,-.21,0,knee);
+    const ankle=J(knee,0,-.43,0);
+    M_(new THREE.BoxGeometry(.095,.05,.25),figMat.leather,0,-.035,-.06,ankle);
+    for(const zz of [-.12,.0]) M_(new THREE.TorusGeometry(.05,.008,4,12),figMat.leather,0,-.01,zz,ankle).rotation.x=Math.PI/2;
+    rig['hip'+side]=hip; rig['knee'+side]=knee; rig['ankle'+side]=ankle;
+  }
+  // torso (pivots at the waist so it can twist and lean)
+  const torso=J(hips,0,0,0); rig.torso=torso;
+  const tun=M_(new THREE.LatheGeometry([[.001,.62],[.17,.6],[.2,.5],[.19,.28],[.17,.06],[.2,-.08],[.26,-.4],[.28,-.46],[.001,-.46]].reverse().map(p=>new THREE.Vector2(p[0],p[1])),22),figMat.tunic,0,0,0,torso);
+  tun.scale.z=.78; rig.tunic=tun;
+  M_(new THREE.TorusGeometry(.176,.025,6,22),figMat.sash,0,.06,0,torso).rotation.x=Math.PI/2;
+  const knot=M_(new THREE.BoxGeometry(.05,.18,.02),figMat.sash,.07,-.04,-.14,torso);
+  // cloak hanging from the shoulders at the back
+  // mantle over the shoulders and a coloured hem band
+  const mantle=M_(new THREE.SphereGeometry(.235,20,10,0,Math.PI*2,0,Math.PI*.42),figMat.cloak,0,.47,0,torso); mantle.scale.set(1,.75,.8);
+  const hem=M_(new THREE.TorusGeometry(.272,.018,6,24),figMat.sash,0,-.43,0,torso); hem.rotation.x=Math.PI/2; hem.scale.y=.78; rig.hem=hem;
+  // neck & head
+  const neckJ=J(torso,0,.62,0); rig.neck=neckJ;
+  M_(new THREE.CylinderGeometry(.05,.058,.1,10),figMat.skin,0,.04,0,neckJ);
+  const head=J(neckJ,0,.17,0); rig.head=head;
+  const skull=M_(new THREE.SphereGeometry(.105,18,14),figMat.skin,0,0,0,head); skull.scale.set(.92,1.08,1);
+  const hair=M_(new THREE.SphereGeometry(.112,18,14,0,Math.PI*2,0,Math.PI*.55),figMat.hair,0,.01,.012,head); hair.scale.set(.95,1.05,1.02);
+  M_(new THREE.SphereGeometry(.07,12,10),figMat.hair,0,-.07,-.05,head).scale.set(1.2,1.05,.8);   // beard
+  M_(new THREE.ConeGeometry(.018,.05,6),figMat.skin,0,.0,-.105,head).rotation.x=-Math.PI/2;     // nose
+  for(const sx of [-1,1]){ M_(new THREE.SphereGeometry(.012,6,6),figMat.eye,sx*.035,.025,-.093,head);
+    M_(new THREE.SphereGeometry(.022,8,6),figMat.skin,sx*.098,0,0,head).scale.set(.5,1,.8); }   // ears
+  // arms: shoulder → upper arm (sleeve) → elbow → forearm → hand
+  for(const [side,sx] of [['L',-1],['R',1]]){
+    const sh=J(torso,sx*.215,.54,0);
+    M_(new THREE.SphereGeometry(.06,10,8),figMat.tunic,0,0,0,sh);
+    M_(new THREE.CylinderGeometry(.064,.056,.29,10),figMat.tunic,0,-.145,0,sh);
+    const el=J(sh,0,-.29,0);
+    M_(new THREE.CylinderGeometry(.046,.036,.25,10),figMat.skin,0,-.125,0,el);
+    const hand=M_(new THREE.SphereGeometry(.042,10,8),figMat.skin,0,-.28,-.008,el); hand.scale.set(.75,1.15,.55);
+    rig['sh'+side]=sh; rig['el'+side]=el;
+  }
+  scene.add(g); return g;
+})();
+const gait={phase:0, amp:0, speed:0, run:0, yaw:Math.PI/2};
+function animateFigure(dt, movedM, heading, running){
+  const spd=movedM/Math.max(dt,1e-4); gait.speed+=(spd-gait.speed)*Math.min(1,dt*10);
+  const moving=gait.speed>.25;
+  gait.run+=((running&&moving?1:0)-gait.run)*Math.min(1,dt*5);
+  gait.amp+=((moving?.42+.3*gait.run:0)-gait.amp)*Math.min(1,dt*(moving?8:6));
+  gait.phase+=movedM*(Math.PI*2/(1.45+.5*gait.run));        // one full cycle = two steps
+  if(moving && heading!=null){ let d=heading-gait.yaw; d=Math.atan2(Math.sin(d),Math.cos(d)); gait.yaw+=d*Math.min(1,dt*10); }
+  const ph=gait.phase, a=gait.amp, t=performance.now()/1000;
+  for(const [side,off] of [['L',0],['R',Math.PI]]){
+    const p=ph+off, swing=Math.sin(p);
+    rig['hip'+side].rotation.x = a*swing;                              // + = leg forward
+    rig['knee'+side].rotation.x = -a*1.5*Math.max(0,Math.cos(p)) - a*.15; // bend while the leg swings through
+    rig['ankle'+side].rotation.x = -rig['hip'+side].rotation.x*.35 - rig['knee'+side].rotation.x*.45;
+    rig['sh'+side].rotation.x = -a*.95*swing;                          // arms counter-swing
+    rig['sh'+side].rotation.z = (side==='L'?-1:1)*(.06+.04*gait.run);
+    rig['el'+side].rotation.x = .18 + a*(.35+.5*gait.run)*(0.6+0.4*Math.sin(-p));
+  }
+  rig.hips.position.y = .93 - a*.05 + a*.05*Math.abs(Math.cos(ph));   // rise over each stance leg
+  rig.hips.position.x = a*.02*Math.sin(ph);
+  rig.torso.rotation.y = a*.22*Math.sin(ph);                          // counter-rotate against the hips
+  rig.torso.rotation.x = -.02 - gait.run*.14*Math.min(1,a*2);           // lean into a run
+  rig.torso.scale.y = 1 + (moving?0:.008*Math.sin(t*1.9));             // breathing at rest
+  rig.head.rotation.y = -rig.torso.rotation.y*.7;
+  rig.head.rotation.x = -player.pitch*.35;
+  rig.tunic.rotation.x = -rig.torso.rotation.x*.5;
+  playerFig.rotation.y = gait.yaw;
+}
 function cubitPos(){ return player.pos.clone().divideScalar(S.C); }
 function groundAt(xc,zc,feetC,stepC){
   let g=-1; for(const s of solids){ if(s.door) continue; if(xc>=s.x0&&xc<=s.x1&&zc>=s.z0&&zc<=s.z1 && s.y1<=feetC+stepC+1e-4 && s.y1>g) g=s.y1; } return g;
@@ -1245,7 +1326,7 @@ function blocked(xc,zc,feetC){
     if(xc>s.x0-r && xc<s.x1+r && zc>s.z0-r && zc<s.z1+r) return true; }
   return false;
 }
-function setPlayerCubits(x,z,yaw,pitch,feetHint=0){ player.pos.set(x*S.C,0,z*S.C); const g=groundAt(x,z,feetHint,STEP/S.C); player.feet=g; player.pos.y=g*S.C; if(yaw!=null) player.yaw=yaw; if(pitch!=null) player.pitch=pitch; }
+function setPlayerCubits(x,z,yaw,pitch,feetHint=0){ if(yaw!=null) gait.yaw=yaw; player.pos.set(x*S.C,0,z*S.C); const g=groundAt(x,z,feetHint,STEP/S.C); player.feet=g; player.pos.y=g*S.C; if(yaw!=null) player.yaw=yaw; if(pitch!=null) player.pitch=pitch; }
 
 const keys={}; let joy={x:0,y:0};
 function updatePlayer(dt){
@@ -1257,9 +1338,11 @@ function updatePlayer(dt){
   const sp=(run?7.5:3.2)*dt, len=Math.hypot(f,s)||1, k=Math.min(1,Math.hypot(f,s))/len;
   const fx=-Math.sin(player.yaw), fz=-Math.cos(player.yaw), rx=Math.cos(player.yaw), rz=-Math.sin(player.yaw);
   const dx=(fx*f+rx*s)*k*sp/S.C, dz=(fz*f+rz*s)*k*sp/S.C;
-  const p=cubitPos(), feet=player.feet;
+  const p=cubitPos(), feet=player.feet, p0=p.clone();
   if(dx && !blocked(p.x+dx,p.z,feet)) p.x+=dx;
   if(dz && !blocked(p.x,p.z+dz,feet)) p.z+=dz;
+  const movedM=Math.hypot(p.x-p0.x,p.z-p0.z)*S.C;
+  animateFigure(dt, movedM, (f||s)?Math.atan2(-(fx*f+rx*s),-(fz*f+rz*s)):null, run);
   const g=groundAt(p.x,p.z,feet,STEP/S.C);
   if(g>=feet){ player.feet=g; player.vy=0; }
   else { player.vy-=9.8*dt/S.C; player.feet=Math.max(g, feet+player.vy*dt); if(player.feet===g) player.vy=0; }
@@ -1270,8 +1353,8 @@ const ray=new THREE.Raycaster();
 function placeCamera(){
   if(tour.on){ cam.position.copy(tour.pose.pos); cam.rotation.set(tour.pose.pitch,tour.pose.yaw,0); return; }
   const eye=new THREE.Vector3(player.pos.x, player.pos.y+EYE, player.pos.z);
-  playerFig.position.copy(player.pos); playerFig.rotation.y=player.yaw;
-  if(!S.third){ cam.position.copy(eye); cam.rotation.set(player.pitch,player.yaw,0); return; }
+  playerFig.position.copy(player.pos);
+  if(!S.third){ eye.y+=Math.sin(gait.phase*2)*.025*gait.amp; cam.position.copy(eye); cam.rotation.set(player.pitch,player.yaw,0); return; }
   const back=new THREE.Vector3(Math.sin(player.yaw)*Math.cos(player.pitch), -Math.sin(player.pitch), Math.cos(player.yaw)*Math.cos(player.pitch));
   let d=tpDist; ray.set(eye,back); ray.far=tpDist; const hit=ray.intersectObjects(occluders,false)[0]; if(hit) d=Math.max(.4,hit.distance-.25);
   cam.position.copy(eye).addScaledVector(back,d).add(new THREE.Vector3(0,.25,0)); cam.rotation.set(player.pitch,player.yaw,0);
