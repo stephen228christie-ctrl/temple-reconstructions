@@ -209,7 +209,7 @@ body.panel-open #bpnote{left:calc((100vw - 400px)/2)}
 
 <div id="touch" hidden>
   <div id="stick"><div id="knob"></div></div>
-  <div class="tbtns"><button id="tbRun" aria-pressed="false">RUN</button><button id="tbRead">READ</button><button id="tbView">VIEW</button></div>
+  <div class="tbtns"><button id="tbRun" aria-pressed="false">RUN</button><button id="tbDoor" hidden>DOOR</button><button id="tbRead">READ</button><button id="tbView">VIEW</button></div>
 </div>
 
 <div id="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle">
@@ -223,6 +223,7 @@ body.panel-open #bpnote{left:calc((100vw - 400px)/2)}
       <div><kbd>W A S D</kbd>walk · <kbd>Shift</kbd>run</div>
       <div><kbd>Mouse</kbd>look (click to capture)</div>
       <div><kbd>E</kbd>read the nearest object</div>
+      <div><kbd>F</kbd>open / close the nearest doors</div>
       <div><kbd>T</kbd>guided tour in text order</div>
       <div><kbd>C</kbd>cutaway · <kbd>B</kbd>blueprint</div>
       <div><kbd>M</kbd>dimensions · <kbd>V</kbd>1st/3rd person</div>
@@ -789,13 +790,15 @@ const ELEMENTS = [
   materials:'Olive tree, carved, overlaid with gold',
   explicit:'For the entering of the oracle he made doors of olive tree, carved with cherubims, palm trees and open flowers, and overlaid with gold. The lintel and side posts were "a fifth part of the wall".',
   interp:['"A fifth part of the wall" is read as a doorway one fifth of the 20-cubit wall (4 cubits). Alternatives: a five-sided lintel and posts, or a frame recessed in five steps (see Cogan, 1 Kings, Anchor Bible). Door height is not given.',
-          'The doors are shown open so the oracle can be explored.'],
-  dims:[['Doorway width (⅕ of 20)',4,'',true],['Doorway height',8,'',true]],
+          'The swing of the leaves (into the oracle) is reconstructed. Click the doors, or press F nearby, to open or close them.'],
+  dims:[['Doorway width (⅕ of 20)',4,'',true],['Doorway height',8,'',true]], doorKey:'oracle',
   tour:{pos:[-3,3.6,3.5], look:[-10,4,0]},
   build(){
+    const D=makeDoor('oracle','the doors of the oracle',[-10.35,-9.95],[0,8],[-2,2]);
     for(const s of [1,-1]){
       const leaf=new THREE.Mesh(new THREE.BoxGeometry(2,7.9,.15), M.carved); leaf.geometry.translate(-1,0,0);
-      leaf.position.set(-10.15,3.95,s*2); leaf.rotation.y = s>0 ? -Math.PI*0.48 : Math.PI*0.48; add(leaf,{I:false});
+      leaf.position.set(-10.15,3.95,s*2); add(leaf);
+      D.leaves.push({o:leaf, closed:s>0?-Math.PI/2:Math.PI/2, open:s>0?Math.PI/2:-Math.PI/2});
       box([-10.4,-9.6],[0,8.4],[s>0?1.8:-2.2, s>0?2.2:-1.8],M.gold,{solid:false});
     }
     box([-10.4,-9.6],[8,8.5],[-2.2,2.2],M.gold,{solid:false});
@@ -824,16 +827,18 @@ const ELEMENTS = [
   materials:'Posts of olive tree; two doors of fir; carved and overlaid with gold; hinges of gold',
   explicit:'Posts of olive tree, "a fourth part of the wall". Two doors of fir tree, each of two folding leaves, carved with cherubims, palm trees and open flowers, covered with gold fitted upon the carved work. The hinges were of gold.',
   interp:['"A fourth part of the wall" is read as a 5-cubit doorway (one quarter of 20). Alternative: a frame recessed in four steps. Height is not given.',
-          'Each door is shown with its two leaves folded back against the inner wall.'],
-  dims:[['Doorway width (¼ of 20)',5,'',true],['Doorway height',10,'',true]],
+          'Each door is two leaves that fold back on each other (6:34). How far they fold and which way they swing are reconstructed. Click the doors, or press F nearby, to open or close them.'],
+  dims:[['Doorway width (¼ of 20)',5,'',true],['Doorway height',10,'',true]], doorKey:'temple',
   tour:{pos:[22,3.6,-3.5], look:[29,5,3]},
   build(){
+    const D=makeDoor('temple','the doors of the temple',[29.55,30],[0,10],[-2.5,2.5]);
     for(const s of [1,-1]){
       const hx=29.8, hz=s*2.5;
       const l1=new THREE.Mesh(new THREE.BoxGeometry(1.25,9.9,.15),M.carved); l1.geometry.translate(-.625,0,0);
-      l1.position.set(hx,4.95,hz); l1.rotation.y= s>0? -.25 : .25; add(l1);
+      l1.position.set(hx,4.95,hz); add(l1);
       const l2=new THREE.Mesh(new THREE.BoxGeometry(1.25,9.9,.15),M.carved); l2.geometry.translate(-.625,0,0);
-      l2.position.set(-1.25,0,0); l2.rotation.y = s>0 ? .5 : -.5; l1.add(l2); l2.castShadow=true;
+      l2.position.set(-1.25,0,0); l1.add(l2); l2.castShadow=true;
+      D.leaves.push({o:l1, closed:s>0?-Math.PI/2:Math.PI/2, open:s>0?1.35:-1.35}, {o:l2, closed:0, open:s>0?1.5:-1.5});
       box([29.5,30.3],[0,10.4],[s>0?2.3:-2.7, s>0?2.7:-2.3],M.gold,{solid:false});
     }
     box([29.5,30.3],[10,10.5],[-2.7,2.7],M.gold,{solid:false});
@@ -964,11 +969,13 @@ const ELEMENTS = [
   explicit:'The great court round about had three rows of hewed stones and a row of cedar beams. Solomon made doors for the court and overlaid them with brass.',
   interp:['Size and gates are not given. Shown as a larger enclosure (380 × 240 cubits) with one east gate. The brass-covered doors follow 2 Chronicles 4:9.',
           '1 Kings 7:12 also covers Solomon’s palace complex, which is outside this model.'],
-  dims:[['Size',null,'not given',true]],
+  dims:[['Size',null,'not given',true]], doorKey:'gate',
   zone:[-112,-1,-122,272,14,122],
   tour:{pos:[262,24,108], look:[80,0,0]},
   build(){ courtWall(-112,272,-122,122,8,'great');
-    for(const s of [1,-1]){ const d=new THREE.Mesh(new THREE.BoxGeometry(.3,5,8),M.bronze); d.geometry.translate(0,0,-s*4); d.position.set(272,1.5,s*8); d.rotation.y=s*1.2; add(d); } }},
+    const D=makeDoor('gate','the doors of the court',[271.8,272.2],[-1,4],[-8,8]);
+    for(const s of [1,-1]){ const d=new THREE.Mesh(new THREE.BoxGeometry(.3,5,8),M.bronze); d.geometry.translate(0,0,-s*4); d.position.set(272,1.5,s*8); add(d,{I:true});
+      D.leaves.push({o:d, closed:0, open:s*1.25}); } }},
 
 { id:'pillars', name:'Jachin and Boaz', status:'EI',
   refs:['1 Kings 7:15-22','1 Kings 7:41','1 Kings 7:42','2 Chronicles 3:15','2 Chronicles 3:16','2 Chronicles 3:17'], aux:['Jeremiah 52:21','Jeremiah 52:22','Jeremiah 52:23','2 Kings 25:17'],
@@ -1105,6 +1112,19 @@ const ELEMENTS = [
   build(){ box([162.5,167.5],[-1,2],[-27.5,-22.5],M.bronze); }}
 ];
 
+/* ---------- doors: hinged leaves that swing open/closed; solid only while closed ---------- */
+const DOORS={}, DOOR_STATE={temple:1, oracle:1, gate:1};   // 1 = open (persists across rebuilds)
+function makeDoor(key,label,X,Y,Z){
+  const D={key,label,t:DOOR_STATE[key],target:DOOR_STATE[key],leaves:[],center:new THREE.Vector3((X[0]+X[1])/2,(Y[0]+Y[1])/2,(Z[0]+Z[1])/2)};
+  DOORS[key]=D; solids.push({x0:X[0],x1:X[1],y0:Y[0],y1:Y[1],z0:Z[0],z1:Z[1],el:B.id,door:D});
+  return D;
+}
+function poseDoor(D){ const k=D.t*D.t*(3-2*D.t); for(const L of D.leaves){ L.o.rotation.y=L.closed+(L.open-L.closed)*k; L.o.userData.door=D; L.o.children.forEach(c=>c.userData.door=D); } }
+function toggleDoor(D){ if(!D) return; D.target=D.target>.5?0:1; DOOR_STATE[D.key]=D.target; doorSound(D.target); if(shownId && EL[shownId].doorKey===D.key) showPanel(shownId); }
+function nearestDoor(maxM){ const p=cubitPos(); let best=null,bd=maxM/S.C; for(const D of Object.values(DOORS)){ const d=Math.hypot(D.center.x-p.x,D.center.z-p.z); if(d<bd){bd=d;best=D;} } return best; }
+function updateDoors(dt){ for(const D of Object.values(DOORS)){ if(D.t!==D.target){ const step=dt/(reduceMotion?.05:1.4); D.t = D.target>D.t ? Math.min(D.target,D.t+step) : Math.max(D.target,D.t-step); poseDoor(D); } } }
+function doorFor(o){ while(o){ if(o.userData && o.userData.door) return o.userData.door; o=o.parent; } return null; }
+
 /* court wall: three rows of hewed stone and a row of cedar beams, gate on the east */
 function courtWall(x0,x1,z0,z1,gate,kind){
   const t=2, top=-1+3.6;
@@ -1123,6 +1143,7 @@ let overlayGroup=null, dimsGroup=null, gridHelper=null;
 function clearAll(){
   while(root.children.length){ const c=root.children.pop(); c.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
   for(const a of [solids,occluders,pickables,roofs,fades,interpMeshes,lights,flames]) a.length=0;
+  for(const k in DOORS) delete DOORS[k];
 }
 function buildAll(){
   clearAll(); root.scale.setScalar(1); root.updateMatrixWorld(true);
@@ -1131,6 +1152,7 @@ function buildAll(){
     B={id:e.id, g}; e.build(); B=null;
     g.traverse(o=>{ if((o.isMesh||o.isInstancedMesh) && !o.userData.noPick && o.material!==M.flame){ o.userData.el=e.id; pickables.push(o); } });
   }
+  for(const D of Object.values(DOORS)) poseDoor(D);
   root.updateMatrixWorld(true);
   for(const e of ELEMENTS){
     const b = e.zone ? new THREE.Box3(new THREE.Vector3(e.zone[0],e.zone[1],e.zone[2]), new THREE.Vector3(e.zone[3],e.zone[4],e.zone[5]))
@@ -1215,15 +1237,15 @@ const playerFig=(()=>{ const g=new THREE.Group();
 
 function cubitPos(){ return player.pos.clone().divideScalar(S.C); }
 function groundAt(xc,zc,feetC,stepC){
-  let g=-1; for(const s of solids){ if(xc>=s.x0&&xc<=s.x1&&zc>=s.z0&&zc<=s.z1 && s.y1<=feetC+stepC+1e-4 && s.y1>g) g=s.y1; } return g;
+  let g=-1; for(const s of solids){ if(s.door) continue; if(xc>=s.x0&&xc<=s.x1&&zc>=s.z0&&zc<=s.z1 && s.y1<=feetC+stepC+1e-4 && s.y1>g) g=s.y1; } return g;
 }
 function blocked(xc,zc,feetC){
   const r=RADIUS/S.C, step=STEP/S.C, head=HEAD/S.C;
-  for(const s of solids){ if(s.y1<=feetC+step || s.y0>=feetC+head) continue;
+  for(const s of solids){ if(s.door && s.door.t>.35) continue; if(s.y1<=feetC+step || s.y0>=feetC+head) continue;
     if(xc>s.x0-r && xc<s.x1+r && zc>s.z0-r && zc<s.z1+r) return true; }
   return false;
 }
-function setPlayerCubits(x,z,yaw,pitch){ player.pos.set(x*S.C,0,z*S.C); const g=groundAt(x,z,999,0); player.feet=g; player.pos.y=g*S.C; if(yaw!=null) player.yaw=yaw; if(pitch!=null) player.pitch=pitch; }
+function setPlayerCubits(x,z,yaw,pitch,feetHint=0){ player.pos.set(x*S.C,0,z*S.C); const g=groundAt(x,z,feetHint,STEP/S.C); player.feet=g; player.pos.y=g*S.C; if(yaw!=null) player.yaw=yaw; if(pitch!=null) player.pitch=pitch; }
 
 const keys={}; let joy={x:0,y:0};
 function updatePlayer(dt){
@@ -1285,13 +1307,14 @@ function updateLighting(dt){
 /* =====================================================================
    PICKING, PROXIMITY, VERSE PANEL
    ===================================================================== */
-let pinned=null, shownId=null, nearId=null;
-function pickAt(nx,ny){
+let pinned=null, shownId=null, nearId=null, shownIdPrev=null;
+function pickHit(nx,ny){
   ray.setFromCamera({x:nx,y:ny}, S.blue?ortho:cam); ray.far=Infinity;
   const hits=ray.intersectObjects(pickables,false);
-  for(const h of hits){ let o=h.object; if(!o.visible) continue; let vis=true, q=o; while(q){ if(!q.visible){vis=false;break;} q=q.parent; } if(!vis) continue; const id=o.userData.el; if(id){ return id; } }
+  for(const h of hits){ let o=h.object; if(!o.visible) continue; let vis=true, q=o; while(q){ if(!q.visible){vis=false;break;} q=q.parent; } if(!vis) continue; if(o.userData.el) return o; }
   return null;
 }
+function pickAt(nx,ny){ const o=pickHit(nx,ny); return o?o.userData.el:null; }
 function selectEl(id, how){ if(!id) return; pinned={id, from:player.pos.clone()}; showPanel(id); }
 function nearestEl(){
   const p=cubitPos(); p.y=player.feet+1; let best=null, bestV=Infinity;
@@ -1304,8 +1327,12 @@ function nearestEl(){
 const promptEl=document.getElementById('prompt');
 function updateProximity(){
   if(tour.on || S.blue){ promptEl.hidden=true; return; }
-  nearId=nearestEl();
-  if(nearId){ promptEl.hidden=false; promptEl.innerHTML=`<b>${EL[nearId].name}</b> · ${isTouch?'tap READ':'press E'} to read`; } else promptEl.hidden=true;
+  nearId=nearestEl(); const nd=nearestDoor(9);
+  const doorTxt = nd ? ` · ${isTouch?'tap DOOR':'F'} to ${nd.target>.5?'close':'open'} ${nd.label}` : '';
+  if(nearId){ promptEl.hidden=false; promptEl.innerHTML=`<b>${EL[nearId].name}</b> · ${isTouch?'tap READ':'press E'} to read${doorTxt}`; }
+  else if(nd){ promptEl.hidden=false; promptEl.innerHTML=`<b>${nd.label[0].toUpperCase()+nd.label.slice(1)}</b>${doorTxt}`; }
+  else promptEl.hidden=true;
+  if(isTouch) document.getElementById('tbDoor').hidden=!nd;
   if(pinned) return;
   if(S.verse && nearId && nearId!==shownId) showPanel(nearId);
 }
@@ -1325,6 +1352,7 @@ function showPanel(id){
   document.getElementById('pBadges').innerHTML=badges.join('');
   const dims=typeof e.dims==='function'?e.dims():e.dims;
   let h='';
+  if(e.doorKey && DOORS[e.doorKey]){ const D=DOORS[e.doorKey]; h+=`<div style="margin-top:14px"><button class="pill primary" id="doorBtn">${D.target>.5?'Close':'Open'} ${esc(D.label)}</button></div>`; }
   h+=`<h3>${e.status==='I'?'What the text says':'Explicit in the text'}</h3><div class="explicit-box">${esc(e.explicit)}</div>`;
   if(dims.length){ h+=`<h3>Dimensions · 1 cubit = ${S.C} m</h3><table class="dims"><tbody>`;
     for(const [label,c,note,flag] of dims){
@@ -1336,7 +1364,8 @@ function showPanel(id){
   for(const r of e.refs.flatMap(expandRef)) if(KJV[r]) h+=`<blockquote class="verse"><p>${esc(KJV[r])}</p><cite>${esc(r)} (KJV)</cite></blockquote>`;
   if(e.aux && e.aux.length){ h+=`<h3>Related texts used for comparison</h3>`; for(const r of e.aux.flatMap(expandRef)) if(KJV[r]) h+=`<blockquote class="verse aux"><p>${esc(KJV[r])}</p><cite>${esc(r)} (KJV)</cite></blockquote>`; }
   if(e.interp && e.interp.length){ h+=`<h3>Interpreted / reconstructed</h3><ul class="interp">${e.interp.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`; }
-  document.getElementById('pBody').innerHTML=h; document.getElementById('pBody').scrollTop=0;
+  const pb=document.getElementById('pBody'), keepScroll=(shownIdPrev===id)?pb.scrollTop:0; pb.innerHTML=h; pb.scrollTop=keepScroll; shownIdPrev=id;
+  const db=document.getElementById('doorBtn'); if(db) db.onclick=()=>toggleDoor(DOORS[e.doorKey]);
   panel.hidden=false; document.body.classList.add('panel-open');
 }
 function closePanel(){ panel.hidden=true; document.body.classList.remove('panel-open'); shownId=null; pinned={id:null, from:player.pos.clone()}; }
@@ -1361,9 +1390,9 @@ function goStop(i){
   document.getElementById('tInfo').innerHTML=`<b>${esc(EL[id].name)}</b>Stop ${tour.i+1} of ${TOUR.length} · ${esc(refRange(EL[id].refs).split(' · ')[0])}`;
 }
 function endTour(walk){
-  if(walk){ const p=tour.pose.pos.clone().divideScalar(S.C); let x=p.x,z=p.z; const feet=groundAt(x,z,999,0);
+  if(walk){ const p=tour.pose.pos.clone().divideScalar(S.C); let x=p.x,z=p.z; const feet=groundAt(x,z,0,STEP/S.C);
     if(blocked(x,z,feet)){ x=Math.min(Math.max(x,-110),270); }
-    setPlayerCubits(x,z,tour.pose.yaw,Math.max(-.6,Math.min(.6,tour.pose.pitch))); }
+    setPlayerCubits(x,z,tour.pose.yaw,Math.max(-.6,Math.min(.6,tour.pose.pitch)),Math.min(p.y-EYE/S.C,0)); }
   tour.on=false; S.cut=tour.savedCut; document.getElementById('tourbar').hidden=true; setPressed('bTour',false); pinned={id:shownId,from:player.pos.clone()}; applyToggles();
 }
 function updateTour(dt){
@@ -1398,7 +1427,7 @@ function drawMini(){
   mg.fillStyle='#1b1610'; mg.fillRect(0,0,W,W);
   mg.translate(W/2,W/2); mg.scale(sc,sc); mg.translate(-p.x,-p.z);
   mg.fillStyle='rgba(214,178,94,.08)'; mg.fillRect(-30,-10,60,20);
-  for(const s of solids){ if(s.y1<.8 || (s.x1-s.x0)*(s.z1-s.z0)<.3) continue;
+  for(const s of solids){ if(s.y1<.8 || (s.x1-s.x0)*(s.z1-s.z0)<.3 || (s.door && s.door.t>.35)) continue;
     const el=s.el; mg.fillStyle = el==='house'||el==='porch'?'#b9a57e': el==='chambers'?'#7d6c50': el==='innerCourt'||el==='greatCourt'?'#8d7d60': el==='oracle'?'#d6b25e': el==='altar'||el==='sea'||el==='bases'||el==='pillars'||el==='scaffold'?'#b98252':'#d6b25e';
     mg.fillRect(s.x0,s.z0,s.x1-s.x0,s.z1-s.z0); }
   mg.restore();
@@ -1426,6 +1455,12 @@ function initSound(){
   const fs=AC.createBufferSource(); fs.buffer=fb; fs.loop=true; const bp_=AC.createBiquadFilter(); bp_.type='bandpass'; bp_.frequency.value=1800;
   fireGain=AC.createGain(); fireGain.gain.value=0; fs.connect(bp_).connect(fireGain).connect(AC.destination); fs.start();
 }
+function doorSound(open){
+  if(!S.sound||!AC) return; const t=AC.currentTime, o=AC.createOscillator(), g=AC.createGain(), f=AC.createBiquadFilter();
+  o.type='sawtooth'; o.frequency.setValueAtTime(open?90:120,t); o.frequency.linearRampToValueAtTime(open?140:70,t+1.1);
+  f.type='bandpass'; f.frequency.value=380; f.Q.value=6; g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.05,t+.15); g.gain.exponentialRampToValueAtTime(.0001,t+1.3);
+  o.connect(f).connect(g).connect(AC.destination); o.start(t); o.stop(t+1.4);
+}
 function updateSound(){
   if(!AC) return; const p=cam.position.clone().divideScalar(S.C), z=zoneAt(p);
   const on=S.sound?1:0, wind=(z==='outside'?.05:z==='porch'?.03:.008)*on;
@@ -1452,9 +1487,12 @@ addEventListener('pointermove',e=>{
 addEventListener('pointerup',e=>{
   if(!drag||drag.id!==e.pointerId) return; const d=drag; drag=null;
   if(d.moved) return;
-  if(document.pointerLockElement===canvas){ selectEl(pickAt(0,0)); return; }
-  const nx=(e.clientX/innerWidth)*2-1, ny=-(e.clientY/innerHeight)*2+1;
-  const id=pickAt(nx,ny), bg=!id||['site','greatCourt','innerCourt','foundation'].includes(id);
+  const locked=document.pointerLockElement===canvas;
+  const nx=locked?0:(e.clientX/innerWidth)*2-1, ny=locked?0:-(e.clientY/innerHeight)*2+1;
+  const hitObj=pickHit(nx,ny), door=doorFor(hitObj);
+  if(door){ toggleDoor(door); selectEl(hitObj.userData.el); return; }
+  if(locked){ selectEl(hitObj&&hitObj.userData.el); return; }
+  const id=hitObj?hitObj.userData.el:null, bg=!id||['site','greatCourt','innerCourt','foundation'].includes(id);
   if(id && (!bg || isTouch || S.blue || tour.on || d.type!=='mouse')) selectEl(id);
   else if(!isTouch && !S.blue && !tour.on && d.type==='mouse' && canvas.requestPointerLock){ try{ const r=canvas.requestPointerLock(); if(r&&r.catch) r.catch(()=>{}); }catch(_){} }
 });
@@ -1469,7 +1507,8 @@ canvas.addEventListener('touchend',()=>{ pinch=null; },{passive:true});
 
 const HOT={ KeyV:()=>toggle('third'), KeyC:()=>toggle('cut'), KeyB:()=>toggleBlue(), KeyM:()=>toggle('dims'), KeyI:()=>toggle('interp'),
   KeyT:()=> tour.on?endTour(false):startTour(0), KeyR:()=>toggle('verse'), KeyL:()=>toggle('lamp'), KeyN:()=>toggleSound(), KeyH:()=>showIntro(true),
-  KeyE:()=>{ const id=nearId||pickAt(0,0); if(id) selectEl(id); }, KeyK:()=>setCubit(S.cubit==='standard'?'long':'standard'),
+  KeyE:()=>{ const id=nearId||pickAt(0,0); if(id) selectEl(id); },
+  KeyF:()=>{ const D=nearestDoor(9)||doorFor(pickHit(0,0)); if(D) toggleDoor(D); }, KeyK:()=>setCubit(S.cubit==='standard'?'long':'standard'),
   Escape:()=>{ if(!document.getElementById('intro').hidden) showIntro(false); else if(!panel.hidden) closePanel(); else if(tour.on) endTour(false); },
   BracketRight:()=>tour.on&&goStop(tour.i+1), BracketLeft:()=>tour.on&&goStop(tour.i-1) };
 addEventListener('keydown',e=>{
@@ -1530,6 +1569,7 @@ if(isTouch){
   on('tbRun',e=>{ S.run=!S.run; e.currentTarget.setAttribute('aria-pressed',S.run); });
   on('tbRead',()=>{ const id=nearId||pickAt(0,0); if(id) selectEl(id); });
   on('tbView',()=>toggle('third'));
+  on('tbDoor',()=>{ const D=nearestDoor(9); if(D) toggleDoor(D); });
 }
 
 /* =====================================================================
@@ -1540,6 +1580,7 @@ addEventListener('resize',resize);
 let last=performance.now(), tAcc=0;
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000); last=now; tAcc+=dt;
+  updateDoors(dt);
   if(tour.on) updateTour(dt); else if(!S.blue && document.getElementById('intro').hidden) updatePlayer(dt);
   placeCamera(); updateLighting(dt); updateProximity(); updateSound();
   if(!reduceMotion){ for(const f of flames){ const s=1+Math.sin(tAcc*(f.userData.big?7:11)+f.position.x*3+f.position.z)*.12; f.scale.set(1,s,1); }
