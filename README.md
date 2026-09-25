@@ -10,6 +10,9 @@ Walkable 3D reconstructions of Israel's sanctuaries, built with Three.js from th
 Each page is a single self-contained HTML file (Three.js r128 from cdnjs, no build step).
 Solomon's Temple quotes the King James Version (public domain) verbatim and flags every
 element as **explicit in the text** or **interpreted / reconstructed**.
+Its surroundings (Solomon's palace complex, the city of David, the wall of Jerusalem, Millo,
+Gihon, the Kidron and the Mount of Olives) are placed from the text and can be seen but not entered.
+Cross-references come from a search of the whole KJV Bible.
 
 ## Run locally
 
