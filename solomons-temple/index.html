@@ -1943,9 +1943,6 @@ function npcUpper(o){
   else if(o.head==='cloth'){ Pt.push(colorGeo(SPH(.118,16,10,0,Math.PI*2,0,Math.PI*.6),o.headCol,T4(0,.87,.01))); Pt.push(colorGeo(CYL(.12,.15,.26,12,1,true,-Math.PI*.5,Math.PI),o.headCol,T4(0,.74,.03,1,1,.9))); }
   else Pt.push(colorGeo(SPH(.107,16,10,0,Math.PI*2,0,Math.PI*.53),hair,T4(0,.868,.012,.93,1.02,1.05)));
   if(o.beard) Pt.push(colorGeo(SPH(.089,14,8,0,Math.PI*2,Math.PI*.47,Math.PI*.53),o.beardCol||hair,T4(0,.825,-.012,.98,1.28,1.02)));
-  if(o.mantle){ Pt.push(colorGeo(CYL(.2,.29,.95,16,1,true,-Math.PI*.4,Math.PI*.8),o.mantleCol,T4(0,.12,.012,1,1,.82)));
-    for(const [ang,y,r] of [[-.4,-.35,.29],[.4,-.35,.29],[-.4,.2,.24],[.4,.2,.24]]){ const x=Math.sin(Math.PI*ang)*r, z=Math.cos(Math.PI*ang)*r*.82;   // fringes with a blue cord (Numbers 15:38)
-      Pt.push(colorGeo(CYL(.008,.013,.08,5),COL.linen,T4(x,y-.04,z))); Pt.push(colorGeo(new THREE.TorusGeometry(.012,.004,4,8),COL.blue,T4(x,y,z,1,1,1,Math.PI/2))); } }
   if(o.garb==='high'){                                        // ephod, shoulder stones and breastplate (Exodus 28)
     Pt.push(colorGeo(CYL(.212,.2,.36,18,1,true),COL.ephod,T4(0,.24,0,1,1,.77)));
     [COL.blue,COL.purple,COL.scarlet,COL.gold].forEach((h,i)=>Pt.push(colorGeo(new THREE.TorusGeometry(.2,.012,4,20),h,T4(0,.1+i*.09,0,1,.77,1,Math.PI/2))));
@@ -1965,6 +1962,12 @@ function npcUpper(o){
     [['#4b2a5c',-.06,.02],['#4b2a5c',-.03,-.04],['#b3262c',.06,.02],['#7a6a2a',.02,.07],['#6d7f3a',-.08,.08]].forEach(([h,x,z])=>Pt.push(colorGeo(SPH(.045,8,6),h,T4(x,1.1,z)))); }
   return mergeC(Pt);
 }
+function npcMantle(o){        // separate so it can drape when the wearer bows; pivot at the shoulders
+  const Pt=[colorGeo(CYL(.2,.29,.95,16,1,true,-Math.PI*.4,Math.PI*.8),o.mantleCol,T4(0,-.475,.012,1,1,.82))];
+  for(const [ang,y,r] of [[-.4,-.35,.29],[.4,-.35,.29],[-.4,.2,.24],[.4,.2,.24]]){ const x=Math.sin(Math.PI*ang)*r, z=Math.cos(Math.PI*ang)*r*.82;   // fringes with a blue cord (Numbers 15:38)
+    Pt.push(colorGeo(CYL(.008,.013,.08,5),COL.linen,T4(x,y-.04-.595,z))); Pt.push(colorGeo(new THREE.TorusGeometry(.012,.004,4,8),COL.blue,T4(x,y-.595,z,1,1,1,Math.PI/2))); }
+  return mergeC(Pt);
+}
 function npcSkirt(o){
   const Pt=[], pts=o.long?[[.172,.02],[.21,-.25],[.245,-.6],[.27,-.9]]:[[.172,.02],[.215,-.2],[.25,-.4],[.26,-.47]];
   Pt.push(colorGeo(latheG(pts),o.skirt||o.cloth,T4(0,0,0,1,1,.76)));
@@ -1972,7 +1975,14 @@ function npcSkirt(o){
     if(i%2) Pt.push(colorGeo(new THREE.ConeGeometry(.018,.035,6),COL.gold,T4(x,-.9,z))); else Pt.push(colorGeo(SPH(.02,6,5),[COL.blue,COL.purple,COL.scarlet][(i/2)%3],T4(x,-.89,z))); }
   return mergeC(Pt);
 }
-function npcLeg(o){ return mergeC([colorGeo(CYL(.07,.045,.86,10),o.legCol||o.skin,T4(0,-.43,0)), colorGeo(new THREE.BoxGeometry(.09,.05,.23),o.feet||COL.leather,T4(0,-.9,-.05))]); }
+// leg = hip joint -> thigh -> knee joint -> shin -> ankle joint -> foot, so legs fold properly when kneeling
+const npcThigh=o=>mergeC([colorGeo(CYL(.075,.058,.44,10),o.legCol||o.skin,T4(0,-.22,0))]);
+const npcShin=o=>mergeC([colorGeo(SPH(.058,10,8),o.legCol||o.skin), colorGeo(CYL(.055,.042,.43,10),o.skin,T4(0,-.215,0))]);
+const npcFoot=o=>mergeC([colorGeo(new THREE.BoxGeometry(.09,.05,.23),o.feet||COL.leather,T4(0,-.03,-.05)), colorGeo(SPH(.045,8,6),o.skin,T4(0,0,0))]);
+function npcLeg(o,parent,x,mk){ const hip=new THREE.Group(); hip.position.set(x,-.02,0); hip.add(mk(npcThigh(o)));
+  const knee=new THREE.Group(); knee.position.y=-.44; hip.add(knee); knee.add(mk(npcShin(o)));
+  const ankle=new THREE.Group(); ankle.position.y=-.43; knee.add(ankle); ankle.add(mk(npcFoot(o)));
+  parent.add(hip); return {hip,knee,ankle}; }
 function npcArm(o,side){
   const Pt=[], sl=o.sleeve||o.cloth, sk=o.skin, a=.28, dy=-Math.cos(a), dz=-Math.sin(a), hy=-.29+dy*.27, hz=dz*.27, R=side>0, p=o.prop;
   Pt.push(colorGeo(SPH(.06,10,8),sl)); Pt.push(colorGeo(CYL(.057,.049,.29,10),sl,T4(0,-.145,0)));
@@ -1989,11 +1999,12 @@ function npcArm(o,side){
 function makeNPC(o){
   const g=new THREE.Group(), hips=new THREE.Group(); hips.position.y=.95; g.add(hips);
   const mk=geo=>{ const m=new THREE.Mesh(geo,npcMat); m.castShadow=true; m.receiveShadow=true; return m; };
-  const legL=mk(npcLeg(o)), legR=mk(npcLeg(o)); legL.position.set(-.09,-.02,0); legR.position.set(.09,-.02,0);
+  const legL=npcLeg(o,hips,-.09,mk), legR=npcLeg(o,hips,.09,mk);
   const skirt=mk(npcSkirt(o)), upper=new THREE.Group(); upper.add(mk(npcUpper(o)));
   const armL=mk(npcArm(o,-1)), armR=mk(npcArm(o,1)); armL.position.set(-.205,.545,0); armR.position.set(.205,.545,0); upper.add(armL,armR);
-  hips.add(legL,legR,skirt,upper); g.scale.setScalar(o.scale||1); scene.add(g);
-  return {g,hips,legL,legR,skirt,upper,armL,armR};
+  let mantle=null; if(o.mantle){ mantle=mk(npcMantle(o)); mantle.position.set(0,.595,0); upper.add(mantle); }
+  hips.add(skirt,upper); g.scale.setScalar(o.scale||1); scene.add(g);
+  return {g,hips,legL,legR,skirt,upper,armL,armR,mantle};
 }
 function makeLamb(){
   const Pt=[colorGeo(SPH(.3,14,10),'#ebe5d8',T4(0,.46,0,1,.85,1.45)), colorGeo(SPH(.13,12,8),'#d9cfbf',T4(0,.58,-.47,.85,.95,1.2)), colorGeo(SPH(.06,8,6),'#ebe5d8',T4(0,.5,.44))];
@@ -2129,8 +2140,13 @@ function updateNPCs(dt){
     if(n.animal) npcAnimal(n,dt);
   }
 }
+const ease=x=>{ x=Math.min(1,Math.max(0,x)); return x*x*(3-2*x); };
 function poseNPC(n,dt){
-  const r=n.rig, a=n.amp, ph=n.phase, t=n.t, c=n.o, T={legL:a*Math.sin(ph),legR:-a*Math.sin(ph),aLx:-a*.8*Math.sin(ph),aRx:a*.8*Math.sin(ph),aLz:-.06,aRz:.06,up:0,upy:0,hy:.95+a*.03*Math.cos(2*ph)-a*.02};
+  const r=n.rig, a=n.amp, ph=n.phase, t=n.t, c=n.o, sL=Math.sin(ph), cL=Math.cos(ph);
+  // walking: knees bend as each leg swings through, feet stay level
+  const T={thL:a*sL, thR:-a*sL, knL:-a*1.2*Math.max(0,cL)-.02, knR:-a*1.2*Math.max(0,-cL)-.02, anL:0, anR:0,
+           aLx:-a*.8*sL, aRx:a*.8*sL, aLz:-.06, aRz:.06, up:0, upy:0, hy:.95+a*.03*Math.cos(2*ph)-a*.03, skirtX:0};
+  T.anL=-(T.thL+T.knL)*.8; T.anR=-(T.thR+T.knR)*.8;
   const pose=n.moving?'walk':n.pose;
   switch(pose){
     case 'tend':    { const k=(Math.sin(t*2.1)+1)/2; T.up=.25+.2*k; T.aLx=T.aRx=.6+.7*k; break; }
@@ -2142,17 +2158,33 @@ function poseNPC(n,dt){
     case 'censer':  T.aRx=.8+.08*Math.sin(t*2); T.aLx=.45; T.up=.15; break;
     case 'sing':    T.aLx=T.aRx=.35; T.aLz=-.3; T.aRz=.3; T.up=-.12; T.upy=.1*Math.sin(t*.7); break;
     case 'talk':    T.aRx=.45+.35*Math.max(0,Math.sin(t*1.9)); T.aRz=.2; T.upy=.25*Math.sin(t*.6); break;
-    case 'bow':     { const cy=t%14, k=cy<4?0:cy<6?(cy-4)/2:cy<11?1:cy<13?1-(cy-11)/2:0; n.bw=damp(n.bw||0,k,3,dt); const b=n.bw;
-                      T.up=b*1.2; T.hy=.95-b*.45; T.legL=T.legR=-b*1.0; T.aLx=T.aRx=b*1.3; break; }
+    case 'bow': {
+      // "O come, let us worship and bow down: let us kneel before the LORD" (Psalm 95:6)
+      // stand 4s -> kneel 1.8s -> hold 1.2s -> bow low 1.6s -> hold 4s -> sit up 1.6s -> stand 1.8s  (16s cycle)
+      const q=t%16, k=q<4?0:q<5.8?ease((q-4)/1.8):q<14.2?1:1-ease((q-14.2)/1.8), p=q<7?0:q<8.6?ease((q-7)/1.6):q<12.6?1:q<14.2?1-ease((q-12.6)/1.6):0;
+      // kneeling upright: hips .5 m, thighs vertical, shins flat on the ground behind
+      // bowed low: sitting back on the heels (hips .32 m), thighs forward, forehead toward the ground, hands flat in front
+      const hy=.95+(.5-.95)*k+(.32-.5)*p, th=.9*p, kn=-1.57*k+(-2.47+1.57)*p;
+      T.thL=T.thR=th; T.knL=T.knR=kn; T.anL=T.anR=0; T.hy=hy;
+      T.up=.08*k+(1.35-.08)*p; T.aLx=T.aRx=.15*k+(2.1-.15)*p; T.aLz=-.12; T.aRz=.12; T.skirtX=.45*th; T.drape=p; break; }
     case 'walk': break;
-    default:        T.upy=.12*Math.sin(t*.35);
+    default: T.upy=.12*Math.sin(t*.35);
   }
   if(pose==='walk' && ['bowl','censer','doves','trumpet','staff'].includes(c.prop)) T.aRx=.5;
   if(pose==='walk' && c.prop==='doves') T.aLx=.5;
   if(c.prop==='basket' && pose!=='bow'){ T.aRx=2.9; T.aRz=.25; }                                                   // steadying the basket
+  const kneeling=pose==='bow', K=kneeling?20:14;                                                                   // bow targets are already eased
   const D=(o,ax,v,k=10)=>{ o.rotation[ax]=damp(o.rotation[ax],v,k,dt); };
-  D(r.legL,'x',T.legL,14); D(r.legR,'x',T.legR,14); D(r.armL,'x',T.aLx); D(r.armR,'x',T.aRx); D(r.armL,'z',T.aLz); D(r.armR,'z',T.aRz);
-  D(r.upper,'x',-T.up,6); D(r.upper,'y',T.upy,4); r.hips.position.y=damp(r.hips.position.y,T.hy,8,dt);
+  D(r.legL.hip,'x',T.thL,K); D(r.legR.hip,'x',T.thR,K); D(r.legL.knee,'x',T.knL,K); D(r.legR.knee,'x',T.knR,K); D(r.legL.ankle,'x',T.anL,K); D(r.legR.ankle,'x',T.anR,K);
+  D(r.armL,'x',T.aLx,kneeling?12:10); D(r.armR,'x',T.aRx,kneeling?12:10); D(r.armL,'z',T.aLz); D(r.armR,'z',T.aRz);
+  D(r.upper,'x',-T.up,kneeling?12:6); D(r.upper,'y',T.upy,4);
+  r.hips.position.y=damp(r.hips.position.y,T.hy,kneeling?20:8,dt);
+  // the robe folds down with the body instead of sinking into the floor
+  const len=c.long?.9:.47, sy=Math.min(1,Math.max(.25,(r.hips.position.y-.03)/len));
+  r.skirt.scale.y=damp(r.skirt.scale.y,sy,20,dt); D(r.skirt,'x',T.skirtX,12);
+  if(r.mantle){ const dr=T.drape||0;       // bowed low, the cloak lies short and close over the back instead of standing out
+    r.mantle.scale.y=damp(r.mantle.scale.y,1-.5*dr,20,dt); r.mantle.scale.z=damp(r.mantle.scale.z,1-.45*dr,20,dt); r.mantle.scale.x=damp(r.mantle.scale.x,1+.08*dr,20,dt);
+    D(r.mantle,'x',-.12*dr,20); }
 }
 function npcAnimal(n,dt){
   const A=n.animal, off=n.d.animalOff||[.95,.6], c=Math.cos(n.yaw), s=Math.sin(n.yaw);
