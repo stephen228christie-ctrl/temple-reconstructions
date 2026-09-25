@@ -461,6 +461,11 @@ function makeTextures(){
     for(const [x,w,col] of [[8,6,'#5a4128'],[18,3,'#5a4128'],[102,3,'#5a4128'],[110,6,'#5a4128']]){ g.fillStyle=col; g.fillRect(x,0,w,128); }
     for(let y=0;y<128;y+=2){ g.fillStyle='rgba(0,0,0,.05)'; g.fillRect(0,y,128,1); }
     T.mantle=tex(c); }
+  // glowing coals: dark ash with orange embers
+  { const c=mkCanvas(256,256), g=c.getContext('2d'); g.fillStyle='#1c120c'; g.fillRect(0,0,256,256);
+    for(let i=0;i<900;i++){ const x=rnd()*256, y=rnd()*256, r=2+rnd()*7, hot=rnd(); const gr=g.createRadialGradient(x,y,0,x,y,r);
+      gr.addColorStop(0,hot>.7?'rgba(255,210,120,1)':'rgba(255,110,30,.95)'); gr.addColorStop(1,'rgba(120,30,5,0)'); g.fillStyle=gr; g.fillRect(x-r,y-r,r*2,r*2); }
+    T.coals=tex(c); T.coals.repeat.set(3,3); }
   return T;
 }
 
@@ -518,6 +523,8 @@ function makeMaterials(){
     lattice: new THREE.MeshBasicMaterial({color:0xffefcc}),
     flame: new THREE.MeshBasicMaterial({color:0xffc56a}),
     ember: new THREE.MeshBasicMaterial({color:0xff7a2a}),
+    char: new THREE.MeshStandardMaterial({color:0x2b1c12, roughness:1, emissive:0x2a0800}),
+    coals: new THREE.MeshStandardMaterial({map:T.coals, emissive:0xffffff, emissiveMap:T.coals, emissiveIntensity:1.1, roughness:1}),
     bread: mat({color:0xd6ad73, roughness:.9}),
     wood: mat({color:0x5b3a22, roughness:.85}),
     stoneRamp: mat({map:T.stone, roughness:.95},[6,6]),
@@ -555,6 +562,48 @@ const mz = r => [-r[1],-r[0]];                     // mirror a z-range to the no
 function mesh(geo, material, x,y,z, o={}){ const m=new THREE.Mesh(geo,material); m.position.set(x,y,z); return add(m,o); }
 function lathe(pts, seg, material, x,y,z, o={}){ return mesh(new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])), seg), material, x,y,z, o); }
 function light(color, intensity, distM, x,y,z){ const l=new THREE.PointLight(color,intensity,distM,2); l.position.set(x,y,z); B.g.add(l); lights.push(l); return l; }
+
+/* ---------- fire: glowing, flickering particles (altar fire, lamp flames, coals) ---------- */
+const FIRE={tex:null,smoke:null,glow:null,systems:[],lamps:[]};
+function fireTextures(){
+  if(FIRE.tex) return;
+  const c=mkCanvas(64,128), g=c.getContext('2d'), gr=g.createRadialGradient(32,96,2,32,82,62);
+  gr.addColorStop(0,'rgba(255,255,236,1)'); gr.addColorStop(.18,'rgba(255,228,120,.95)'); gr.addColorStop(.45,'rgba(255,142,40,.6)'); gr.addColorStop(.8,'rgba(200,60,10,.14)'); gr.addColorStop(1,'rgba(0,0,0,0)');
+  g.fillStyle=gr; g.beginPath(); g.moveTo(32,2); g.bezierCurveTo(58,50,62,92,32,126); g.bezierCurveTo(2,92,6,50,32,2); g.fill();
+  FIRE.tex=new THREE.CanvasTexture(c); FIRE.tex.encoding=THREE.sRGBEncoding;
+  const sm=mkCanvas(64,64), sg=sm.getContext('2d'), r=sg.createRadialGradient(32,32,0,32,32,32); r.addColorStop(0,'rgba(118,110,102,.6)'); r.addColorStop(1,'rgba(118,110,102,0)'); sg.fillStyle=r; sg.fillRect(0,0,64,64);
+  FIRE.smoke=new THREE.CanvasTexture(sm);
+  const e=mkCanvas(64,64), eg=e.getContext('2d'), er=eg.createRadialGradient(32,32,0,32,32,32); er.addColorStop(0,'rgba(255,214,140,1)'); er.addColorStop(.35,'rgba(255,112,30,.6)'); er.addColorStop(1,'rgba(255,60,0,0)'); eg.fillStyle=er; eg.fillRect(0,0,64,64);
+  FIRE.glow=new THREE.CanvasTexture(e); FIRE.glow.encoding=THREE.sRGBEncoding;
+}
+function fireSprite(tex,additive,opacity){ const m=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,blending:additive?THREE.AdditiveBlending:THREE.NormalBlending,opacity,fog:false}); m.userData.lin=true; const sp=new THREE.Sprite(m); sp.userData.noPick=true; return sp; }
+function makeFire(parent,cx,cy,cz,rx,rz,o={}){
+  fireTextures();
+  const f={parts:[],smoke:[],sparks:[],cx,cy,cz,rx,rz,h:o.h||5,size:o.size||1.6};
+  for(let i=0;i<(o.n||40);i++){ const sp=fireSprite(FIRE.tex,true,1); sp.center.set(.5,.05); parent.add(sp); f.parts.push({s:sp,x:cx+(rnd()*2-1)*rx,z:cz+(rnd()*2-1)*rz,t:rnd(),sp:.55+rnd()*.6,w:.6+rnd()*.7}); }
+  for(let i=0;i<(o.core||26);i++){ const sp=fireSprite(FIRE.tex,false,.9); sp.center.set(.5,.05); parent.add(sp); f.parts.push({s:sp,core:true,x:cx+(rnd()*2-1)*rx*.8,z:cz+(rnd()*2-1)*rz*.8,t:rnd(),sp:.7+rnd()*.6,w:.55+rnd()*.5}); }   // solid-coloured core so flames read in daylight
+  for(let i=0;i<(o.smoke||14);i++){ const sp=fireSprite(FIRE.smoke,false,0); parent.add(sp); f.smoke.push({s:sp,x:cx+(rnd()*2-1)*rx*.6,z:cz+(rnd()*2-1)*rz*.6,t:rnd(),sp:.1+rnd()*.08}); }
+  for(let i=0;i<(o.sparks||26);i++){ const sp=fireSprite(FIRE.glow,true,1); parent.add(sp); f.sparks.push({s:sp,x:cx,z:cz,t:rnd(),sp:.35+rnd()*.5,dx:rnd()-.5,dz:rnd()-.5}); }
+  f.glow=fireSprite(FIRE.glow,true,.5); f.glow.scale.set(rx*3.4,f.h*1.1,1); f.glow.position.set(cx,cy+f.h*.3,cz); parent.add(f.glow);
+  FIRE.systems.push(f); return f;
+}
+function updateFires(dt,t){
+  for(const f of FIRE.systems){
+    for(const p of f.parts){ p.t+=dt*p.sp; if(p.t>1){ p.t-=1; p.x=f.cx+(Math.random()*2-1)*f.rx; p.z=f.cz+(Math.random()*2-1)*f.rz; }
+      const u=p.t, sway=Math.sin(t*3+p.x*2)*.3*u, hot=1-u;
+      p.s.position.set(p.x+sway,f.cy+u*f.h*.55,p.z); p.s.scale.set(f.size*.6*p.w*(1-.55*u), f.size*(1.1+1.5*Math.sin(Math.PI*Math.min(1,u*1.3)))*p.w, 1);
+      if(p.core){ p.s.scale.multiplyScalar(.8); p.s.material.opacity=Math.sin(Math.PI*u)*.85; p.s.material.color.setRGB(1,.42+.35*hot,.08+.25*hot*hot); }
+      else { p.s.material.opacity=Math.sin(Math.PI*u)*.9; p.s.material.color.setRGB(1,.5+.5*hot,.2+.55*hot*hot); } }
+    for(const p of f.smoke){ p.t+=dt*p.sp; if(p.t>1) p.t-=1; const u=p.t, sc=f.size*(1.2+u*4);
+      p.s.position.set(p.x+Math.sin(t*.3+p.x)*u*3,f.cy+f.h*.6+u*f.h*3.4,p.z+u*2.5); p.s.scale.set(sc,sc,1); p.s.material.opacity=Math.sin(Math.PI*u)*.26; }
+    for(const p of f.sparks){ p.t+=dt*p.sp; if(p.t>1){ p.t-=1; p.x=f.cx+(Math.random()*2-1)*f.rx; p.z=f.cz+(Math.random()*2-1)*f.rz; p.dx=Math.random()-.5; p.dz=Math.random()-.5; }
+      const u=p.t, sc=.2*(1-u)+.05; p.s.position.set(p.x+p.dx*u*3,f.cy+.5+u*f.h*1.7,p.z+p.dz*u*3); p.s.scale.set(sc,sc,1); p.s.material.opacity=1-u; }
+    f.glow.material.opacity=.42+.12*Math.sin(t*9)+.06*Math.sin(t*23);
+  }
+  for(const l of FIRE.lamps){ const k=1+Math.sin(t*11+l.ph)*.09+Math.sin(t*23+l.ph*2)*.05; l.s.scale.set(l.w*(1-(k-1)*.6),l.h*k,1); l.s.position.x=l.x+Math.sin(t*7+l.ph)*.012; }
+}
+function lampFlame(parent,x,y,z,h=.34){ fireTextures(); const sp=fireSprite(FIRE.tex,true,1); sp.center.set(.5,.05); sp.position.set(x,y,z); sp.scale.set(h*.42,h,1); parent.add(sp);
+  const g=fireSprite(FIRE.glow,true,.45); g.position.set(x,y+h*.35,z); g.scale.set(h*1.7,h*1.7,1); parent.add(g); FIRE.lamps.push({s:sp,x,w:h*.42,h,ph:Math.random()*6}); }
 
 /* ---------- reusable figures ---------- */
 function makeWing(len, chord){
@@ -1064,7 +1113,7 @@ const ELEMENTS = [
     const x=-6.5; box([x-.5,x+.5],[0,2],[-.5,.5],M.gold,{I:true});
     box([x-.56,x+.56],[1.85,1.95],[-.56,.56],M.gold,{solid:false,I:true});
     for(const [dx,dz] of [[-1,-1],[1,-1],[-1,1],[1,1]]) mesh(new THREE.ConeGeometry(.1,.28,8), M.gold, x+dx*.4,2.14,dz*.4,{I:true});
-    const f=mesh(new THREE.SphereGeometry(.12,8,6), M.ember, x,2.08,0,{cast:false}); flames.push(f);
+    const f=mesh(new THREE.SphereGeometry(.12,8,6), M.ember, x,2.08,0,{cast:false}); flames.push(f); lampFlame(B.g,x,2.08,0,.22);
   }},
 
 { id:'tables', name:'Tables of shewbread', status:'EI',
@@ -1102,7 +1151,7 @@ const ELEMENTS = [
       G(new THREE.CylinderGeometry(.07,.09,3.2,10),0,1.9,0);
       for(const r of [.45,.8,1.15]){ const t=G(new THREE.TorusGeometry(r,.05,8,28,Math.PI),0,3.2,0,Math.PI); }
       for(const lx of [-1.15,-.8,-.45,0,.45,.8,1.15]){ G(new THREE.CylinderGeometry(.13,.06,.14,10),lx,3.3,0);
-        const f=new THREE.Mesh(new THREE.ConeGeometry(.055,.2,8),M.flame); f.position.set(lx,3.47,0); grp.add(f); flames.push(f); }
+        lampFlame(grp,lx,3.36,0,.36); }
       for(const y of [1.2,2,2.6]) G(new THREE.SphereGeometry(.12,10,8),0,y,0);
       grp.traverse(o=>{ if(o.isMesh && o.material!==M.flame){ o.castShadow=true; } });
       B.g.add(grp); solid([x-.5,x+.5],[0,3.5],[z-.5,z+.5]);
@@ -1263,8 +1312,12 @@ const ELEMENTS = [
     box([cx-9,cx+9],[2,6],[-9,9],b,{I:true});
     box([cx-8,cx+8],[6,9],[-8,8],b,{I:true});
     for(const [dx,dz] of [[-1,-1],[1,-1],[-1,1],[1,1]]) box([cx+dx*7.5-.5,cx+dx*7.5+.5],[9,10],[dz*7.5-.5,dz*7.5+.5],b,{solid:false,I:true});
-    for(let i=0;i<8;i++){ const l=mesh(new THREE.CylinderGeometry(.35,.35,9,8),M.wood,cx-4+i*1.1,9.3,0,{cast:false}); l.rotation.x=Math.PI/2; }
-    for(let i=0;i<14;i++){ const f=mesh(new THREE.ConeGeometry(.6+rnd()*.5,2+rnd()*2.5,7),M.flame,cx-5+rnd()*10,10.2,-4+rnd()*8,{cast:false}); flames.push(f); f.userData.big=true; }
+    box([cx-6.5,cx+6.5],[9,9.3],[-6.5,6.5],M.coals,{solid:false,cast:false});                       // bed of glowing coals
+    // "lay the wood in order upon the fire" (Leviticus 1:7): crossed layers of split logs, charred where they burn
+    for(let layer=0;layer<3;layer++) for(let i=0;i<6;i++){ const r=.22+rnd()*.1, len=5+rnd()*3, along=layer%2===0, off=-4.5+i*1.8+(rnd()-.5)*.5;
+      const l=mesh(new THREE.CylinderGeometry(r,r*.9,len,7),rnd()<.5?M.char:M.wood, along?cx+(rnd()-.5)*2:cx+off, 9.3+r+layer*.55, along?off:(rnd()-.5)*2,{cast:false});
+      if(along) l.rotation.z=Math.PI/2+(rnd()-.5)*.15; else l.rotation.x=Math.PI/2+(rnd()-.5)*.15; l.rotation.y=(rnd()-.5)*.25; }
+    makeFire(B.g,cx,9.4,0,4.6,4.6,{n:44,h:6,size:1.7});
     const L=light(0xff8a3a,2.2,40, cx,13,0); L.userData.fire=true;
     // ramp (visual wedge) + walkable slices
     const w=27, rg=new THREE.BoxGeometry(w,7,6), p=rg.attributes.position;
@@ -1622,6 +1675,7 @@ function clearAll(){
   while(root.children.length){ const c=root.children.pop(); c.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
   for(const a of [solids,occluders,pickables,roofs,fades,interpMeshes,lights,flames]) a.length=0;
   for(const k in DOORS) delete DOORS[k];
+  FIRE.systems.length=0; FIRE.lamps.length=0;
 }
 function buildAll(){
   clearAll(); root.scale.setScalar(1); root.updateMatrixWorld(true);
@@ -1766,11 +1820,11 @@ const playerFig=(()=>{
   const head=J(neck,0,.2,0); rig.head=head;
   A(S_(.1,28,20),figMat.skin,head).scale.set(.9,1.06,1);
   A(S_(.082,24,16),figMat.skin,head,0,-.045,-.012).scale.set(.92,.85,1);
-  A(new THREE.SphereGeometry(.107,28,16,0,Math.PI*2,0,Math.PI*.52),figMat.hair,head,0,.012,.012).scale.set(.93,1.02,1.05);
-  A(S_(.095,18,12),figMat.hair,head,0,-.02,.045).scale.set(.95,.92,.72);
-  A(new THREE.SphereGeometry(.089,24,14,0,Math.PI*2,Math.PI*.47,Math.PI*.53),figMat.hair,head,0,-.03,-.012).scale.set(.98,1.28,1.02);   // beard
+  A(new THREE.SphereGeometry(.107,28,12,0,Math.PI*2,0,Math.PI*.3),figMat.hair,head,0,.012,.006).scale.set(.93,1.02,1.02);          // hair on top, hairline above the brow
+  A(new THREE.SphereGeometry(.108,28,16,0,Math.PI,0,Math.PI*.72),figMat.hair,head,0,.008,.008).scale.set(.94,1.03,1.04);           // hair at the back and sides
+  A(new THREE.SphereGeometry(.089,24,10,0,Math.PI*2,Math.PI*.6,Math.PI*.4),figMat.hair,head,0,-.03,-.01).scale.set(.97,1.3,1.02);   // short beard along the jaw and chin
   A(new THREE.TorusGeometry(.024,.0065,5,12,Math.PI),figMat.hair,head,0,-.034,-.094).rotation.z=Math.PI;   // moustache
-  A(new THREE.BoxGeometry(.034,.009,.012),figMat.lip,head,0,-.05,-.093);
+  A(new THREE.BoxGeometry(.03,.008,.012),figMat.lip,head,0,-.047,-.094);
   const nose=A(new THREE.BoxGeometry(.02,.046,.03),figMat.skin,head,0,.0,-.1); nose.rotation.x=-.18;
   A(S_(.014,10,8),figMat.skin,head,0,-.022,-.108);
   for(const sx of [-1,1]){
@@ -1935,14 +1989,17 @@ function npcUpper(o){
   Pt.push(colorGeo(CYL(.047,.054,.12),sk,T4(0,.69,0)));
   Pt.push(colorGeo(SPH(.1,16,12),sk,T4(0,.855,0,.9,1.06,1)));
   Pt.push(colorGeo(new THREE.BoxGeometry(.018,.04,.028),sk,T4(0,.845,-.1)));
-  for(const sx of [-1,1]) Pt.push(colorGeo(SPH(.012,6,5),'#1a120c',T4(sx*.034,.875,-.086)));
+  for(const sx of [-1,1]){ Pt.push(colorGeo(SPH(.0145,8,6),'#f1ece2',T4(sx*.033,.875,-.083))); Pt.push(colorGeo(SPH(.0075,6,5),'#2a1a10',T4(sx*.033,.875,-.0955)));
+    Pt.push(colorGeo(new THREE.BoxGeometry(.034,.008,.01),o.hairCol||COL.hair,T4(sx*.033,.896,-.089,1,1,1,0,0,-sx*.12))); }
+  Pt.push(colorGeo(new THREE.BoxGeometry(.028,.007,.01),'#7b4336',T4(0,.818,-.092)));
   if(o.head==='bonnet'){ Pt.push(colorGeo(SPH(.113,16,10,0,Math.PI*2,0,Math.PI*.56),COL.white,T4(0,.87,.005,1,.95,1.02))); Pt.push(colorGeo(new THREE.TorusGeometry(.1,.016,6,18),COL.white,T4(0,.872,.005,1,1,1.02,Math.PI/2))); }
   else if(o.head==='mitre'){ Pt.push(colorGeo(CYL(.12,.112,.17,16),COL.white,T4(0,.925,.005))); for(const y of [.87,.93,.99]) Pt.push(colorGeo(new THREE.TorusGeometry(.117,.014,6,18),COL.white,T4(0,y,.005,1,1,1,Math.PI/2)));
     Pt.push(colorGeo(new THREE.BoxGeometry(.09,.035,.012),COL.gold,T4(0,.93,-.121))); Pt.push(colorGeo(new THREE.TorusGeometry(.121,.004,4,20),COL.blue,T4(0,.945,.005,1,1,1,Math.PI/2))); }
   else if(o.head==='veil'){ Pt.push(colorGeo(SPH(.12,16,10,0,Math.PI*2,0,Math.PI*.62),o.veil,T4(0,.865,.01,1,1,1.05))); Pt.push(colorGeo(CYL(.13,.2,.5,14,1,true,-Math.PI*.55,Math.PI*1.1),o.veil,T4(0,.62,.03,1,1,.85))); }
   else if(o.head==='cloth'){ Pt.push(colorGeo(SPH(.118,16,10,0,Math.PI*2,0,Math.PI*.6),o.headCol,T4(0,.87,.01))); Pt.push(colorGeo(CYL(.12,.15,.26,12,1,true,-Math.PI*.5,Math.PI),o.headCol,T4(0,.74,.03,1,1,.9))); }
-  else Pt.push(colorGeo(SPH(.107,16,10,0,Math.PI*2,0,Math.PI*.53),hair,T4(0,.868,.012,.93,1.02,1.05)));
-  if(o.beard) Pt.push(colorGeo(SPH(.089,14,8,0,Math.PI*2,Math.PI*.47,Math.PI*.53),o.beardCol||hair,T4(0,.825,-.012,.98,1.28,1.02)));
+  else { Pt.push(colorGeo(SPH(.107,16,8,0,Math.PI*2,0,Math.PI*.3),hair,T4(0,.868,.006,.93,1.02,1.02))); Pt.push(colorGeo(SPH(.108,16,10,0,Math.PI,0,Math.PI*.72),hair,T4(0,.864,.008,.94,1.03,1.04))); }
+  if(o.beard){ Pt.push(colorGeo(SPH(.089,14,8,0,Math.PI*2,Math.PI*.6,Math.PI*.4),o.beardCol||hair,T4(0,.825,-.01,.97,1.3,1.02)));
+    Pt.push(colorGeo(new THREE.TorusGeometry(.021,.006,4,10,Math.PI),o.beardCol||hair,T4(0,.829,-.092,1,1,1,0,0,Math.PI))); }
   if(o.garb==='high'){                                        // ephod, shoulder stones and breastplate (Exodus 28)
     Pt.push(colorGeo(CYL(.212,.2,.36,18,1,true),COL.ephod,T4(0,.24,0,1,1,.77)));
     [COL.blue,COL.purple,COL.scarlet,COL.gold].forEach((h,i)=>Pt.push(colorGeo(new THREE.TorusGeometry(.2,.012,4,20),h,T4(0,.1+i*.09,0,1,.77,1,Math.PI/2))));
@@ -2545,7 +2602,8 @@ function frame(now){
   updateDoors(dt); updateNPCs(dt); npcSounds(dt);
   if(tour.on) updateTour(dt); else if(!S.blue && document.getElementById('intro').hidden) updatePlayer(dt);
   placeCamera(dt); updateLighting(dt); updateProximity(); updateSound();
-  if(!reduceMotion){ for(const f of flames){ const s=1+Math.sin(tAcc*(f.userData.big?7:11)+f.position.x*3+f.position.z)*.12; f.scale.set(1,s,1); }
+  updateFires(reduceMotion?dt*.3:dt,tAcc);
+  if(!reduceMotion){ for(const f of flames){ const s=1+Math.sin(tAcc*11+f.position.x*3+f.position.z)*.12; f.scale.set(1,s,1); }
     for(const l of lights) if(l.userData.fire) l.intensity=2+Math.sin(tAcc*9)*.3+Math.sin(tAcc*23)*.15; }
   playerFig.visible = S.third && !S.blue && !tour.on;
   if(S.blue){ placeOrtho(); renderer.render(scene,ortho); } else renderer.render(scene,cam);
