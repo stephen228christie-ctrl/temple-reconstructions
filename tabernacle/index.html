@@ -43,6 +43,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .dock{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-direction:column;align-items:flex-end;gap:8px;z-index:4}
 .dock .pill{font-weight:500;font-size:13px;padding:9px 13px;min-height:38px}
 .dock .pill b{font-weight:700}
+#runBtn[aria-pressed="true"]{background:var(--gold);color:#1d1606}
 .hint{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 100px);max-width:min(80vw,340px);background:var(--panel);border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.35;box-shadow:0 6px 20px rgba(40,28,10,.22);z-index:4;transition:opacity .4s}
 .hint.gone{opacity:0;pointer-events:none}
 .stick{position:fixed;left:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);width:128px;height:128px;border-radius:50%;background:rgba(245,239,226,.28);border:2px solid rgba(245,239,226,.85);box-shadow:0 4px 18px rgba(40,28,10,.25);z-index:4;touch-action:none;-webkit-user-select:none;user-select:none}
@@ -92,11 +93,12 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
   <button class="pill" id="placesBtn" aria-haspopup="dialog">Places</button>
 </div>
 <div class="dock">
+  <button class="pill" id="runBtn" aria-pressed="false">Run: <b>off</b></button>
   <button class="pill" id="viewBtn">View: <b>behind Aaron</b></button>
   <button class="pill" id="coverBtn">Tent covers: <b>on</b></button>
   <button class="pill" id="bellBtn">Robe bells: <b>on</b></button>
 </div>
-<div class="hint" id="hint">You are Aaron, the high priest. Use the stick at bottom left to walk. Drag anywhere else to look around. Tap any object to read what Exodus says about it.</div>
+<div class="hint" id="hint">You are Aaron, the high priest. Use the stick at bottom left to walk; push it all the way, tap Run, or hold Shift to run. Drag anywhere else to look around. Tap any object to read what Exodus says about it.</div>
 <div class="stick" id="stick" role="application" aria-label="Walking stick: drag to move Aaron"><div class="knob" id="knob"></div></div>
 <section class="sheet" id="sheet" role="dialog" aria-modal="false" aria-labelledby="cardTitle">
   <div class="weave"></div>
@@ -126,7 +128,7 @@ about:{t:'How to read this model',r:'Exodus 25–30 (the instructions) and 35–
     'Where Exodus is silent (the lampstand’s height, the basin’s size, the cherubim’s faces) the model makes a reasonable guess, and the card says so in an interpretation note.',
     'You walk as Aaron, the high priest, dressed in the garments of Exodus 28. Only he entered the Most Holy Place, once a year (Leviticus 16).',
     'Colours follow the text wherever it gives them: blue, purple and scarlet yarn, fine linen, gold, silver, bronze, and ram skins dyed red. Where Exodus names the materials but no design (the gate and the entrance screen), only the plain woven threads are shown.',
-    'Controls: the stick at bottom left walks Aaron (W, A, S, D or arrow keys on a keyboard). Drag anywhere else to look around. Pinch or scroll to zoom.'],
+    'Controls: the stick at bottom left walks Aaron (W, A, S, D or arrow keys on a keyboard). To run, push the stick to its edge, tap Run, or hold Shift. Drag anywhere else to look around. Pinch or scroll to zoom.'],
  n:'Chapters 36–40 repeat these instructions almost word for word as Bezalel and Oholiab carry them out, which is a useful cross-check for any detail.'},
 offering:{t:'The offering for the sanctuary',r:'Exodus 25:1–9; 35:4–29; 36:3–7; 38:24–31',
  p:['God tells Moses to receive an offering from everyone whose heart moves them to give.',
@@ -688,7 +690,7 @@ const P={x:60,z:0,facing:PI};
 let moving=false,stepT=0,lastBob=0,jx=0,jy=0;const K={};
 let view='third',camYaw=PI,camPitch=-.27,camDist=11,inspect=false;
 const portrait=innerWidth<innerHeight;let orbitYaw=portrait?.25:.9,orbitPitch=.85,aerialDist=portrait?165:120;
-let lastDrag=-10,coversOn=true,bellsOn=true;
+let lastDrag=-10,coversOn=true,bellsOn=true,runOn=false;
 const SPEED=7,R=.45;
 const clock=new THREE.Clock();
 const raycaster=new THREE.Raycaster();
@@ -768,7 +770,7 @@ stick.addEventListener('pointermove',e=>{if(e.pointerId===stickId)moveStick(e);}
 const endStick=e=>{if(e.pointerId!==stickId)return;stickId=null;jx=jy=0;knob.style.transform='';};
 stick.addEventListener('pointerup',endStick);stick.addEventListener('pointercancel',endStick);
 const MOVEKEYS=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
-addEventListener('keydown',e=>{if(MOVEKEYS.includes(e.code)){K[e.code]=true;ensureAudio();hideHint();e.preventDefault();}});
+addEventListener('keydown',e=>{if(MOVEKEYS.includes(e.code)){K[e.code]=true;ensureAudio();hideHint();e.preventDefault();}if(e.code==='ShiftLeft'||e.code==='ShiftRight')K[e.code]=true;});
 addEventListener('keyup',e=>{K[e.code]=false;});
 addEventListener('blur',()=>{for(const k in K)K[k]=false;});
 
@@ -833,6 +835,7 @@ function setView(v){view=v;$('#viewBtn').innerHTML='View: <b>'+VNAME[v]+'</b>';p
 $('#viewBtn').onclick=()=>setView(VIEWS[(VIEWS.indexOf(view)+1)%3]);
 function setCovers(on){coversOn=on;covers.visible=on;$('#coverBtn').innerHTML='Tent covers: <b>'+(on?'on':'off')+'</b>';}
 $('#coverBtn').onclick=()=>setCovers(!coversOn);
+$('#runBtn').onclick=()=>{runOn=!runOn;$('#runBtn').innerHTML='Run: <b>'+(runOn?'on':'off')+'</b>';$('#runBtn').setAttribute('aria-pressed',String(runOn));};
 $('#bellBtn').onclick=()=>{bellsOn=!bellsOn;ensureAudio();$('#bellBtn').innerHTML='Robe bells: <b>'+(bellsOn?'on':'off')+'</b>';if(bellsOn)ring();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCard();drawer.classList.remove('open');}});
 
@@ -847,10 +850,10 @@ function update(dt,t){
   if(moving){
     inspect=false;
     const yr=view==='aerial'?orbitYaw+PI:camYaw,fx=Math.cos(yr),fz=Math.sin(yr);
-    const mx=fx*(-iy)-fz*ix,mz=fz*(-iy)+fx*ix,a0=Math.atan2(mz,mx),st=SPEED*mag*dt;let ok=false;
+    const mx=fx*(-iy)-fz*ix,mz=fz*(-iy)+fx*ix,a0=Math.atan2(mz,mx),running=runOn||K.ShiftLeft||K.ShiftRight||Math.hypot(jx,jy)>.93,st=SPEED*(running?2.2:1)*mag*dt;let ok=false;
     for(const o of TRY){const a=a0+o,nx=P.x+Math.cos(a)*st,nz=P.z+Math.sin(a)*st;if(!blocked(nx,nz)){P.x=nx;P.z=nz;ok=true;break;}}
     if(view!=='first'&&ok)P.facing+=angDiff(P.facing,a0)*Math.min(1,dt*10);
-    if(ok)stepT+=dt*(.5+mag*.5);else moving=false;
+    if(ok)stepT+=dt*(.5+mag*.5)*(running?1.7:1);else moving=false;
   }
   if(view==='first')P.facing=camYaw;
   priest.position.set(P.x,0,P.z);

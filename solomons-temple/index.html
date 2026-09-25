@@ -123,7 +123,19 @@ body.panel-open #bpnote{left:calc((100vw - 400px)/2)}
 #touch{position:fixed;inset:auto 0 0 0;height:0;z-index:6}
 #stick{position:fixed;left:24px;bottom:calc(28px + env(safe-area-inset-bottom,0px));width:120px;height:120px;border-radius:50%;border:1px solid rgba(214,178,94,.45);background:rgba(18,15,11,.35);touch-action:none}
 #knob{position:absolute;left:40px;top:40px;width:40px;height:40px;border-radius:50%;background:rgba(214,178,94,.55)}
-.tbtns{position:fixed;right:18px;bottom:calc(28px + env(safe-area-inset-bottom,0px));display:flex;gap:8px}
+.tbtns{position:fixed;right:18px;bottom:calc(28px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(2,58px);gap:8px}
+#runPill{position:fixed;left:16px;bottom:calc(26px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:7px 11px;font-size:12.5px;cursor:pointer}
+#runPill kbd{font:500 10px var(--mono);color:var(--faint);border:1px solid var(--line);border-radius:2px;padding:0 4px}
+#runPill[aria-pressed="true"]{border-color:var(--gold);color:var(--gold);background:rgba(214,178,94,.14)}
+#gotoMenu{position:fixed;left:226px;top:calc(118px + env(safe-area-inset-top,0px));z-index:9;width:280px;max-height:calc(100vh - 160px);display:flex;flex-direction:column;background:var(--panel-solid);border:1px solid var(--gold-deep);border-radius:4px}
+#gotoMenu .gh{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px;border-bottom:1px solid var(--line-soft);font:400 17px var(--display);color:var(--gold)}
+#gotoMenu .gh button{background:transparent;border:1px solid var(--line);border-radius:3px;width:28px;height:28px;color:var(--muted);cursor:pointer}
+#gotoList{overflow-y:auto;padding:4px 6px 10px;overscroll-behavior:contain}
+#gotoList h4{font:500 9.5px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:10px 6px 4px}
+#gotoList button{display:block;width:100%;text-align:left;background:transparent;border:0;border-radius:3px;padding:6px 8px;cursor:pointer}
+#gotoList button:hover,#gotoList button:focus-visible{background:rgba(214,178,94,.1)}
+#gotoList b{display:block;font-weight:500;font-size:13px}
+#gotoList small{font:500 10.5px var(--mono);color:var(--muted)}
 .tbtns button{width:58px;height:58px;border-radius:50%;border:1px solid rgba(214,178,94,.5);background:rgba(18,15,11,.55);font:600 11px var(--ui);color:var(--gold);touch-action:none}
 .tbtns button[aria-pressed="true"]{background:rgba(214,178,94,.35);color:#fff}
 
@@ -144,6 +156,7 @@ body.panel-open #bpnote{left:calc((100vw - 400px)/2)}
   #tourbar .long{display:none}
   #tourbar .pill{padding:6px 9px}
   #intro .card{padding:20px}
+  #gotoMenu{left:16px;right:16px;width:auto;top:calc(162px + env(safe-area-inset-top,0px));max-height:calc(100vh - 360px)}
   #intro h2{font-size:26px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -170,6 +183,7 @@ body.panel-open #bpnote{left:calc((100vw - 400px)/2)}
   </div>
   <div class="grp">
     <div class="grp-h">Explore</div>
+    <button class="tbtn" id="bGoto" aria-pressed="false"><span>Go to a place</span><kbd>G</kbd></button>
     <button class="tbtn" id="bTour" aria-pressed="false"><span>Guided tour</span><kbd>T</kbd></button>
     <button class="tbtn" id="bVerse" aria-pressed="true"><span>Verse mode (auto)</span><kbd>R</kbd></button>
     <button class="tbtn" id="bLamp" aria-pressed="true"><span>Hand lamp</span><kbd>L</kbd></button>
@@ -187,6 +201,8 @@ body.panel-open #bpnote{left:calc((100vw - 400px)/2)}
 
 <div class="mapwrap"><canvas id="mini" width="352" height="352" aria-label="Mini-map"></canvas><div id="zone">Great court</div></div>
 <div id="cross" hidden></div>
+<button id="runPill" aria-pressed="false" hidden><span id="runTxt">Walking</span><kbd>Shift</kbd><kbd>X</kbd></button>
+<div id="gotoMenu" hidden role="dialog" aria-label="Go to a place"><div class="gh">Go to a place<button id="gotoClose" aria-label="Close">×</button></div><div id="gotoList"></div></div>
 <div id="prompt" hidden></div>
 <div id="bpnote" hidden>BLUEPRINT · grid = 10 cubits · drag to pan · scroll or pinch to zoom · click an object to read</div>
 <div id="tourbar" hidden>
@@ -210,7 +226,7 @@ body.panel-open #bpnote{left:calc((100vw - 400px)/2)}
 
 <div id="touch" hidden>
   <div id="stick"><div id="knob"></div></div>
-  <div class="tbtns"><button id="tbRun" aria-pressed="false">RUN</button><button id="tbDoor" hidden>DOOR</button><button id="tbRead">READ</button><button id="tbView">VIEW</button></div>
+  <div class="tbtns"><button id="tbDoor" hidden style="grid-column:1/3;width:auto;border-radius:29px">DOOR</button><button id="tbRun" aria-pressed="false">RUN</button><button id="tbGo">GO TO</button><button id="tbRead">READ</button><button id="tbView">VIEW</button></div>
 </div>
 
 <div id="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle">
@@ -221,7 +237,8 @@ body.panel-open #bpnote{left:calc((100vw - 400px)/2)}
     <p>Every structure and furnishing here is tied to its verses. Walk up to anything, or click it, to read the verbatim King James text, the stated measurements in cubits and metres, and exactly what had to be reconstructed where the text is silent.</p>
     <div class="legend"><span class="badge e">EXPLICIT IN TEXT</span><span>stated in Scripture</span><span class="badge i">INTERPRETED / RECONSTRUCTED</span><span>text silent or ambiguous</span></div>
     <div class="keys">
-      <div><kbd>W A S D</kbd>walk · <kbd>Shift</kbd>run</div>
+      <div><kbd>W A S D</kbd>walk · <kbd>Shift</kbd> hold to run</div>
+      <div><kbd>X</kbd>run on / off · <kbd>G</kbd>go to a place</div>
       <div><kbd>Mouse</kbd>look (click to capture)</div>
       <div><kbd>E</kbd>read the nearest object</div>
       <div><kbd>F</kbd>open / close the nearest doors</div>
@@ -1750,9 +1767,9 @@ function animateFigure(dt, movedM, heading){
   gait.t+=dt;
   const prev=gait.speed; gait.speed=damp(gait.speed, movedM/Math.max(dt,1e-4), 10, dt);
   const acc=Math.max(-4,Math.min(4,(gait.speed-prev)/Math.max(dt,1e-4)));
-  gait.run=damp(gait.run, sstep(2.9,5.4,gait.speed), 5, dt);
+  gait.run=damp(gait.run, sstep(3,6,gait.speed), 5, dt);
   gait.amp=damp(gait.amp, Math.min(1,gait.speed/1.1)*(.4+.3*gait.run), 7, dt);
-  gait.phase+=movedM*(Math.PI*2/(1.3+.95*gait.run));                    // one cycle = two steps; longer strides when running
+  gait.phase+=movedM*(Math.PI*2/(1.3+1.25*gait.run));                    // one cycle = two steps; longer strides when running
   // body turns with a critically damped spring, so direction changes ease in and out
   let err=0; if(heading!=null && gait.speed>.1){ err=heading-gait.yaw; err=Math.atan2(Math.sin(err),Math.cos(err)); }
   gait.yawV+=(err*55-gait.yawV*14.8)*dt; gait.yaw+=gait.yawV*dt;
@@ -1807,10 +1824,11 @@ function updatePlayer(dt){
   if(keys.KeyW||keys.ArrowUp) f+=1; if(keys.KeyS||keys.ArrowDown) f-=1; if(keys.KeyD) s+=1; if(keys.KeyA) s-=1;
   if(keys.ArrowLeft) player.yaw+=1.8*dt; if(keys.ArrowRight) player.yaw-=1.8*dt;
   f+= -joy.y; s+= joy.x;
-  const run = keys.ShiftLeft||keys.ShiftRight||S.run;
+  const run = keys.ShiftLeft||keys.ShiftRight||S.run||Math.hypot(joy.x,joy.y)>.93;   // hold Shift, lock with X / RUN, or push the stick to its edge
+  S.running=run && Math.hypot(f,s)>.02;
   const fx=-Math.sin(player.yaw), fz=-Math.cos(player.yaw), rx=Math.cos(player.yaw), rz=-Math.sin(player.yaw);
   const mag=Math.min(1,Math.hypot(f,s)); let tx=0,tz=0;
-  if(mag>.02){ const n=Math.hypot(f,s), sp=(run?6.2:2.8)*mag; tx=(fx*f+rx*s)/n*sp; tz=(fz*f+rz*s)/n*sp; }
+  if(mag>.02){ const n=Math.hypot(f,s), sp=(run?7.8:2.8)*mag; tx=(fx*f+rx*s)/n*sp; tz=(fz*f+rz*s)/n*sp; }
   const k=1-Math.exp(-dt*(mag>.02?4.5:6.5));
   vel.x+=(tx-vel.x)*k; vel.z+=(tz-vel.z)*k;
   if(mag<=.02 && Math.hypot(vel.x,vel.z)<.03){ vel.x=0; vel.z=0; }
@@ -2073,8 +2091,9 @@ canvas.addEventListener('touchend',()=>{ pinch=null; },{passive:true});
 const HOT={ KeyV:()=>toggle('third'), KeyC:()=>toggle('cut'), KeyB:()=>toggleBlue(), KeyM:()=>toggle('dims'), KeyI:()=>toggle('interp'),
   KeyT:()=> tour.on?endTour(false):startTour(0), KeyR:()=>toggle('verse'), KeyL:()=>toggle('lamp'), KeyN:()=>toggleSound(), KeyH:()=>showIntro(true), KeyP:()=>toggle('names'),
   KeyE:()=>{ const id=nearId||pickAt(0,0); if(id) selectEl(id); },
+  KeyX:()=>setRun(!S.run), KeyG:()=>showGoto(document.getElementById('gotoMenu').hidden),
   KeyF:()=>{ const D=nearestDoor(9)||doorFor(pickHit(0,0)); if(D) toggleDoor(D); }, KeyK:()=>setCubit(S.cubit==='standard'?'long':'standard'),
-  Escape:()=>{ if(!document.getElementById('intro').hidden) showIntro(false); else if(!panel.hidden) closePanel(); else if(tour.on) endTour(false); },
+  Escape:()=>{ if(!document.getElementById('gotoMenu').hidden) showGoto(false); else if(!document.getElementById('intro').hidden) showIntro(false); else if(!panel.hidden) closePanel(); else if(tour.on) endTour(false); },
   BracketRight:()=>tour.on&&goStop(tour.i+1), BracketLeft:()=>tour.on&&goStop(tour.i-1) };
 addEventListener('keydown',e=>{
   if(e.target && (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')) return;
@@ -2088,6 +2107,26 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{ keys[e.code]=false; });
 addEventListener('blur',()=>{ for(const k in keys) keys[k]=false; });
 
+function setRun(v){ S.run=v; const b=document.getElementById('tbRun'); if(b) b.setAttribute('aria-pressed',String(v)); }
+function updateRunUI(){ const p=document.getElementById('runPill'); if(p.hidden) return; const on=S.run||S.running;
+  p.setAttribute('aria-pressed',String(on)); const t=S.run?'Running (locked)':S.running?'Running':'Walking'; const el=document.getElementById('runTxt'); if(el.textContent!==t) el.textContent=t; }
+/* Go to: jump to any walkable stop on the tour */
+function gotoSpots(){ return TOUR.filter(id=>{ const e=EL[id], t=e.tour; return t && !e.noNear && !t.cut && !t.rel && t.pos[1]<12 && t.pos[0]>-106 && t.pos[0]<266 && Math.abs(t.pos[2])<116; }); }
+function buildGoto(){
+  const L=document.getElementById('gotoList'), spots=gotoSpots(), inHouse=id=>{ const [x,,z]=EL[id].tour.pos; return x>-30&&x<48&&Math.abs(z)<10; };
+  let h='';
+  for(const [title,ids] of [['Inside the house',spots.filter(inHouse)],['Porch and courts',spots.filter(id=>!inHouse(id))]]){
+    h+=`<h4>${title}</h4>`; for(const id of ids) h+=`<button data-id="${id}"><b>${esc(EL[id].name)}</b><small>${esc(refRange(EL[id].refs).split(' · ')[0])}</small></button>`; }
+  L.innerHTML=h; L.querySelectorAll('button').forEach(b=>b.onclick=()=>goTo(b.dataset.id));
+}
+function showGoto(v){ const m=document.getElementById('gotoMenu'); m.hidden=!v; setPressed('bGoto',v); if(v){ document.exitPointerLock&&document.exitPointerLock(); const f=m.querySelector('#gotoList button'); if(f) f.focus(); } }
+function goTo(id){
+  const t=EL[id].tour, pose=tourPoseFor(id); if(tour.on) endTour(false); S.blue=false;
+  let x=t.pos[0], z=t.pos[2]; const hint=Math.max(-1,t.pos[1]-EYE/S.C);
+  for(const [ox,oz] of [[0,0],[1.5,0],[-1.5,0],[0,1.5],[0,-1.5],[3,0],[-3,0],[0,3],[0,-3]]){ const g=groundAt(x+ox,z+oz,hint,STEP/S.C); if(!blocked(x+ox,z+oz,g)){ x+=ox; z+=oz; break; } }
+  setPlayerCubits(x,z,pose.yaw,Math.max(-.45,Math.min(.35,pose.pitch)),hint); vel.x=vel.z=0; camInit=false;
+  showGoto(false); applyToggles(); selectEl(id);
+}
 function toggle(k){ S[k]=!S[k]; if(k==='verse' && !S.verse){ pinned=null; } applyToggles(); }
 function toggleBlue(){ S.blue=!S.blue; if(S.blue){ if(tour.on) endTour(false); const p=cubitPos(); bp.cx=p.x; bp.cz=p.z; document.exitPointerLock&&document.exitPointerLock(); } applyToggles(); }
 function toggleSound(){ S.sound=!S.sound; if(S.sound&&!AC) initSound(); if(AC&&AC.state==='suspended') AC.resume(); applyToggles(); }
@@ -2108,7 +2147,9 @@ function setPorch(h){
 // buttons
 const on=(id,fn)=>document.getElementById(id).addEventListener('click',fn);
 on('bView',()=>toggle('third')); on('bCut',()=>toggle('cut')); on('bBlue',toggleBlue); on('bDims',()=>toggle('dims')); on('bInterp',()=>toggle('interp'));
-on('bTour',()=> tour.on?endTour(false):startTour(0)); on('bVerse',()=>toggle('verse')); on('bLamp',()=>toggle('lamp')); on('bSound',toggleSound); on('bHelp',()=>showIntro(true)); on('bNames',()=>toggle('names'));
+on('bTour',()=> tour.on?endTour(false):startTour(0)); on('bVerse',()=>toggle('verse')); on('bLamp',()=>toggle('lamp')); on('bSound',toggleSound); on('bHelp',()=>showIntro(true)); on('bNames',()=>toggle('names')); on('bGoto',()=>showGoto(document.getElementById('gotoMenu').hidden)); on('gotoClose',()=>showGoto(false));
+on('runPill',()=>setRun(!S.run)); if(!isTouch) document.getElementById('runPill').hidden=false;
+buildGoto();
 document.querySelectorAll('#segCubit button').forEach(b=>b.addEventListener('click',()=>setCubit(b.dataset.v)));
 document.querySelectorAll('#segPorch button').forEach(b=>b.addEventListener('click',()=>setPorch(b.dataset.v)));
 on('menuBtn',e=>{ const t=document.getElementById('tools'); const o=t.classList.toggle('open'); e.currentTarget.setAttribute('aria-expanded',o); });
@@ -2131,7 +2172,8 @@ if(isTouch){
     knob.style.transform=`translate(${dx}px,${dy}px)`; joy.x=dx/m; joy.y=dy/m; if(tour.on&&d>20) endTour(true); });
   const end=e=>{ if(e.pointerId!==sid) return; sid=null; joy.x=joy.y=0; knob.style.transform=''; };
   stick.addEventListener('pointerup',end); stick.addEventListener('pointercancel',end);
-  on('tbRun',e=>{ S.run=!S.run; e.currentTarget.setAttribute('aria-pressed',S.run); });
+  on('tbRun',()=>setRun(!S.run));
+  on('tbGo',()=>showGoto(document.getElementById('gotoMenu').hidden));
   on('tbRead',()=>{ const id=nearId||pickAt(0,0); if(id) selectEl(id); });
   on('tbView',()=>toggle('third'));
   on('tbDoor',()=>{ const D=nearestDoor(9); if(D) toggleDoor(D); });
@@ -2152,7 +2194,7 @@ function frame(now){
     for(const l of lights) if(l.userData.fire) l.intensity=2+Math.sin(tAcc*9)*.3+Math.sin(tAcc*23)*.15; }
   playerFig.visible = S.third && !S.blue && !tour.on;
   if(S.blue){ placeOrtho(); renderer.render(scene,ortho); } else renderer.render(scene,cam);
-  drawMini();
+  drawMini(); updateRunUI();
   if(namesGroup) namesGroup.visible = S.names && (S.blue || tour.on || zoneAt(cam.position.clone().divideScalar(S.C))==='outside');
   document.getElementById('zone').textContent = S.blue ? 'Blueprint' : zoneName(cam.position.clone().divideScalar(S.C));
   requestAnimationFrame(frame);
