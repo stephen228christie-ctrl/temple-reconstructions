@@ -2023,12 +2023,12 @@ const COL={linen:'#efe9dc',white:'#f4f0e6',gold:'#c9a24b',ephod:'#b89243',blue:'
 function npcBody(o){
   const A=[], C=[], H=[], c=o.cloth, sk=o.skin, hair=o.hairCol||COL.hair;
   // abdomen
-  A.push(colorGeo(latheG([[.19,.36],[.186,.3],[.166,.13],[.172,0],[.182,-.06]]),c,T4(0,0,0,1,1,.74)));
-  A.push(colorGeo(SPH(.186,14,10),c,T4(0,.0,0,1,.45,.76)));                                  // fills the seam with the skirt
+  A.push(colorGeo(latheG([[.19,.38],[.19,.3],[.168,.13],[.172,0],[.18,-.06]]),c,T4(0,0,0,1,1,.74)));
+  A.push(colorGeo(SPH(.17,14,10),c,T4(0,.0,0,1,.45,.72)));                                  // fills the seam with the skirt
   A.push(colorGeo(new THREE.TorusGeometry(.17,.022,6,20),o.sash,T4(0,.08,0,1,.74,1,Math.PI/2)));
   // chest
-  C.push(colorGeo(latheG([[.06,.64],[.15,.615],[.2,.56],[.205,.47],[.194,.36],[.186,.25]]),c,T4(0,0,0,1,1,.74)));
-  C.push(colorGeo(SPH(.19,14,10),c,T4(0,.3,0,1,.4,.75)));                                     // fills the seam with the abdomen
+  C.push(colorGeo(latheG([[.06,.64],[.15,.615],[.2,.56],[.205,.47],[.195,.36],[.19,.25]]),c,T4(0,0,0,1,1,.74)));
+  C.push(colorGeo(SPH(.175,14,10),c,T4(0,.3,0,1,.4,.72)));                                     // fills the seam with the abdomen
   C.push(colorGeo(CYL(.047,.054,.14),sk,T4(0,.68,0)));
   // head: face, hair and headwear
   H.push(colorGeo(SPH(.1,16,12),sk,T4(0,.855,0,.9,1.06,1)));
@@ -2040,7 +2040,7 @@ function npcBody(o){
   if(o.head==='bonnet'){ H.push(colorGeo(SPH(.113,16,10,0,Math.PI*2,0,Math.PI*.56),COL.white,T4(0,.87,.005,1,.95,1.02))); H.push(colorGeo(new THREE.TorusGeometry(.1,.016,6,18),COL.white,T4(0,.872,.005,1,1,1.02,Math.PI/2))); }
   else if(o.head==='mitre'){ H.push(colorGeo(CYL(.12,.112,.17,16),COL.white,T4(0,.925,.005))); for(const y of [.87,.93,.99]) H.push(colorGeo(new THREE.TorusGeometry(.117,.014,6,18),COL.white,T4(0,y,.005,1,1,1,Math.PI/2)));
     H.push(colorGeo(new THREE.BoxGeometry(.09,.035,.012),COL.gold,T4(0,.93,-.121))); H.push(colorGeo(new THREE.TorusGeometry(.121,.004,4,20),COL.blue,T4(0,.945,.005,1,1,1,Math.PI/2))); }
-  else if(o.head==='veil'){ H.push(colorGeo(SPH(.12,16,10,0,Math.PI*2,0,Math.PI*.62),o.veil,T4(0,.865,.01,1,1,1.05))); H.push(colorGeo(CYL(.13,.19,.36,14,1,true,-Math.PI*.55,Math.PI*1.1),o.veil,T4(0,.7,.03,1,1,.85))); }
+  else if(o.head==='veil'){ H.push(colorGeo(SPH(.116,16,10,0,Math.PI*2,0,Math.PI*.55),o.veil,T4(0,.862,.008,1,1,1.04))); H.push(colorGeo(CYL(.112,.2,.26,16,1,true,-Math.PI*.62,Math.PI*1.24),o.veil,T4(0,.73,.025,1,1,.9))); }
   else if(o.head==='cloth'){ H.push(colorGeo(SPH(.118,16,10,0,Math.PI*2,0,Math.PI*.6),o.headCol,T4(0,.87,.01))); H.push(colorGeo(CYL(.12,.15,.2,12,1,true,-Math.PI*.5,Math.PI),o.headCol,T4(0,.77,.03,1,1,.9))); }
   else { H.push(colorGeo(SPH(.107,16,8,0,Math.PI*2,0,Math.PI*.3),hair,T4(0,.868,.006,.93,1.02,1.02))); H.push(colorGeo(SPH(.108,16,10,0,Math.PI,0,Math.PI*.72),hair,T4(0,.864,.008,.94,1.03,1.04))); }
   if(o.beard){ H.push(colorGeo(SPH(.089,14,8,0,Math.PI*2,Math.PI*.6,Math.PI*.4),o.beardCol||hair,T4(0,.825,-.01,.97,1.3,1.02)));
@@ -2115,8 +2115,11 @@ function makeNPC(o){
     const el=new THREE.Group(); el.position.y=-.29; el.add(mk(npcForearm(o,side))); sh.add(el); chest.add(sh); return {sh,el}; };
   const aL=arm(-1), aR=arm(1);
   let mantle=null; if(o.mantle){ mantle=mk(npcMantle(o)); mantle.position.set(0,.295,0); chest.add(mantle); }
+  // the fold of robe used when kneeling: a low rounded mound over the shins and feet
+  const kneelDrape=mk(mergeC([colorGeo(SPH(1,18,10,0,Math.PI*2,0,Math.PI/2),o.skirt||o.cloth,T4(0,0,0,.26,.21,.46)), colorGeo(new THREE.CircleGeometry(1,18),o.skirt||o.cloth,T4(0,.001,0,.26,1,.46,-Math.PI/2))]));
+  kneelDrape.visible=false; hips.add(kneelDrape);
   hips.add(skirt,abd); g.scale.setScalar(o.scale||1); scene.add(g);
-  return {g,hips,legL,legR,skirt,abd,chest,head,armL:aL.sh,armR:aR.sh,elL:aL.el,elR:aR.el,mantle};
+  return {g,hips,legL,legR,skirt,abd,chest,head,armL:aL.sh,armR:aR.sh,elL:aL.el,elR:aR.el,mantle,kneelDrape};
 }
 function makeLamb(){
   const Pt=[colorGeo(SPH(.3,14,10),'#ebe5d8',T4(0,.46,0,1,.85,1.45)), colorGeo(SPH(.13,12,8),'#d9cfbf',T4(0,.58,-.47,.85,.95,1.2)), colorGeo(SPH(.06,8,6),'#ebe5d8',T4(0,.5,.44))];
@@ -2281,8 +2284,8 @@ function poseNPC(n,dt){
       // "O come, let us worship and bow down: let us kneel before the LORD" (Psalm 95:6)
       // stand 4s -> kneel 1.8s -> hold 1.2s -> bow low 1.6s -> hold 4s -> sit up 1.6s -> stand 1.8s  (16s cycle)
       const q=t%16, k=q<4?0:q<5.8?ease((q-4)/1.8):q<14.2?1:1-ease((q-14.2)/1.8), p=q<7?0:q<8.6?ease((q-7)/1.6):q<12.6?1:q<14.2?1-ease((q-12.6)/1.6):0;
-      const th=.9*p; T.thL=T.thR=th; T.knL=T.knR=-1.57*k+(-2.47+1.57)*p; T.anL=T.anR=0; T.y=.95+(.5-.95)*k+(.32-.5)*p;
-      T.up=.1*k+(1.3-.1)*p; T.aLx=T.aRx=.2*k+(1.85-.2)*p; T.eL=T.eR=.3+.1*p; T.aLz=-.12; T.aRz=.12;
+      const th=.9*p; T.thL=T.thR=th; T.knL=T.knR=-1.57*k+(-2.47+1.57)*p; T.anL=T.anR=-1.57*k; T.y=.95+(.5-.95)*k+(.32-.5)*p;   // tops of the feet flat on the pavement
+      T.up=.1*k+(1.3-.1)*p; T.aLx=T.aRx=.35*k+(1.85-.35)*p; T.eL=T.eR=.28+.75*k-.65*p; T.aLz=-.1; T.aRz=.1; T.kneel=k;   // hands on the thighs, then flat on the ground
       T.hx=-.15*k-.2*p; T.hy=0; T.x=0; T.lean=0; T.twist=0; T.skirtX=.45*th; T.drape=p; break; }
     case 'walk': break;
   }
@@ -2302,6 +2305,9 @@ function poseNPC(n,dt){
   // robes fold down with the body and swing forward a little when bending
   const len=c.long?.9:.47, sy=Math.min(1,Math.max(.25,(r.hips.position.y-.03)/len));
   r.skirt.scale.y=damp(r.skirt.scale.y,sy,20,dt); D(r.skirt,'x',T.skirtX-Math.min(.25,T.up*.12),12);
+  // kneeling: a fold of the robe lies over the legs tucked behind, resting on the pavement
+  const kn=T.kneel||0; r.kneelDrape.visible=kn>.02;
+  if(r.kneelDrape.visible){ const d=r.kneelDrape; d.scale.setScalar(.2+.8*kn); d.position.set(0,-r.hips.position.y+.01,.27*kn); d.rotation.x=-(r.legL.hip.rotation.x)*.35; }
   if(r.mantle){ const dr=T.drape;       // bowed low, the cloak lies short and close over the back instead of standing out
     r.mantle.scale.y=damp(r.mantle.scale.y,1-.5*dr,20,dt); r.mantle.scale.z=damp(r.mantle.scale.z,1-.45*dr,20,dt); r.mantle.scale.x=damp(r.mantle.scale.x,1+.08*dr,20,dt);
     D(r.mantle,'x',-.12*dr+(n.moving?a*.3:0),bow?20:6); }
