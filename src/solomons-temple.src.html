@@ -1990,7 +1990,7 @@ function buildAll(){
   }
   // overlay for reconstructed parts
   overlayGroup=new THREE.Group(); overlayGroup.visible=S.interp; root.add(overlayGroup);
-  const om=new THREE.MeshBasicMaterial({color:0xff9b3d,transparent:true,opacity:.38,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  const om=new THREE.MeshBasicMaterial({color:0xff6a10,transparent:true,opacity:.55,toneMapped:false,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});   // not tone-mapped, so it still reads on the sunlit stone
   const toggled=new Set([...roofs,...fades]), batch=[];
   const isToggled=m=>{ for(let q=m; q; q=q.parent) if(toggled.has(q)) return true; return false; };
   for(const m of interpMeshes){ if(m.isInstancedMesh || !m.geometry.attributes.normal) continue; m.updateMatrixWorld(true);
