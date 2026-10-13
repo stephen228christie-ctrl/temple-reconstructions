@@ -3,47 +3,157 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Temple Reconstructions</title>
-<meta name="description" content="Walkable 3D reconstructions of the Tabernacle and Solomon's Temple, built from the biblical text.">
+<title>Biblical Worlds</title>
+<meta name="description" content="Walkable 3D reconstructions of the Tabernacle and Solomon's Temple, built from the measurements the biblical text gives. Plays on a laptop, a phone or with a gamepad.">
+<meta name="theme-color" content="#120f0b">
+<meta property="og:title" content="Biblical Worlds">
+<meta property="og:description" content="Walk the places Scripture describes, built to the measurements the text gives.">
+<meta property="og:image" content="/img/solomons-temple.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=Marcellus&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital@0;1&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=Marcellus&display=swap">
 <style>
-:root{color-scheme:dark;--ground:#120f0b;--card:#1a1510;--line:#3b3226;--text:#efe5cf;--muted:#a6977b;--gold:#d6b25e}
+:root{color-scheme:dark;--ground:#120f0b;--card:#1a1510;--line:#3b3226;--line-soft:#2a241b;--text:#efe5cf;--muted:#a6977b;--faint:#766a55;--gold:#d6b25e;--gold-deep:#9c7a31;
+  --display:Marcellus,Georgia,serif;--verse:"EB Garamond",Georgia,serif;--ui:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:var(--ground);color:var(--text);font:15px/1.6 "IBM Plex Sans",system-ui,sans-serif;padding:max(48px,env(safe-area-inset-top)) 16px 48px}
-main{max-width:880px;margin:0 auto}
-.eyebrow{font:500 11px/1 "IBM Plex Sans",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
-h1{font:400 clamp(32px,6vw,48px)/1.08 Marcellus,Georgia,serif;margin:10px 0 14px;text-wrap:balance}
-.lede{color:var(--muted);max-width:60ch;margin:0 0 36px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-a.card{display:flex;flex-direction:column;gap:8px;padding:22px;border:1px solid var(--line);border-radius:4px;background:var(--card);color:inherit;text-decoration:none;transition:border-color .2s}
-a.card:hover,a.card:focus-visible{border-color:var(--gold);outline:none}
-.refs{font:500 11.5px "IBM Plex Sans",sans-serif;color:var(--gold);letter-spacing:.04em}
-h2{font:400 26px/1.15 Marcellus,Georgia,serif;margin:0}
-.card p{margin:0;color:var(--muted);font-size:14px}
-blockquote{font:italic 18px/1.5 "EB Garamond",Georgia,serif;margin:44px 0 0;padding-left:16px;border-left:2px solid #9c7a31;max-width:60ch}
-cite{display:block;font:500 11px "IBM Plex Sans",sans-serif;font-style:normal;color:var(--gold);margin-top:6px}
+html{background:var(--ground)}
+body{margin:0;min-height:100vh;background:var(--ground);color:var(--text);font:15px/1.6 var(--ui);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+a:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left)) 0 max(16px,env(safe-area-inset-right))}
+.eyebrow{font:500 11px/1 var(--ui);letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+
+/* hero: the court of Solomon's Temple, rendered from the model */
+.hero{position:relative;min-height:min(78vh,720px);display:flex;align-items:flex-end;overflow:hidden;border-bottom:1px solid var(--line-soft)}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 58%}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,15,11,.35) 0%,rgba(18,15,11,0) 30%,rgba(18,15,11,.55) 62%,var(--ground) 100%)}
+.hero .wrap{position:relative;z-index:1;width:100%;padding-top:max(40px,env(safe-area-inset-top));padding-bottom:44px}
+h1{font:400 clamp(38px,7vw,68px)/1.02 var(--display);margin:12px 0 14px;letter-spacing:.01em;text-shadow:0 2px 24px rgba(0,0,0,.45);text-wrap:balance}
+.lede{color:#dccfb3;max-width:56ch;margin:0 0 24px;font-size:16px;text-shadow:0 1px 12px rgba(0,0,0,.5)}
+.ctas{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 20px;border-radius:4px;border:1px solid var(--line);background:rgba(18,15,11,.7);text-decoration:none;font-weight:500;transition:border-color .2s,background .2s}
+.btn:hover{border-color:var(--gold)}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:#1a140b;font-weight:600}
+.btn.primary:hover{background:#e2c170}
+
+/* worlds */
+section{padding:52px 0 8px}
+h2.sec{font:400 28px/1.1 var(--display);margin:8px 0 22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.world{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:6px;background:var(--card);overflow:hidden;text-decoration:none;transition:border-color .2s,transform .2s}
+a.world:hover,a.world:focus-visible{border-color:var(--gold);transform:translateY(-2px);outline:none}
+.world .shot{aspect-ratio:16/9;background:#231c13;position:relative;overflow:hidden}
+.world .shot img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s}
+a.world:hover .shot img{transform:scale(1.03)}
+.world .body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:8px;flex:1}
+.refs{font:500 11.5px var(--mono);color:var(--gold);letter-spacing:.02em}
+.world h3{font:400 26px/1.1 var(--display);margin:0}
+.world p{margin:0;color:var(--muted);font-size:14px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tags span{font:500 11px var(--ui);color:#cbbd9f;border:1px solid var(--line-soft);border-radius:3px;padding:2px 7px}
+.go{margin-top:auto;padding-top:10px;display:flex;align-items:center;justify-content:space-between;font-weight:600;color:var(--gold)}
+.go small{font:500 11px var(--mono);color:var(--muted);font-weight:500}
+.resume{position:absolute;left:12px;top:12px;font:600 10.5px var(--ui);letter-spacing:.1em;text-transform:uppercase;background:var(--gold);color:#1a140b;border-radius:3px;padding:4px 8px}
+.world.soon{border-style:dashed;background:transparent}
+.world.soon .shot{display:grid;place-items:center;background:repeating-linear-gradient(135deg,#1a1510 0 14px,#16120d 14px 28px)}
+.world.soon .shot span{font:400 22px var(--display);color:var(--faint)}
+
+/* how it plays */
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.how div{border-top:1px solid var(--line);padding-top:14px}
+.how b{display:block;font:400 19px var(--display);font-weight:400;margin-bottom:6px}
+.how p{margin:0;color:var(--muted);font-size:14px}
+.how kbd{font:500 11px var(--mono);color:var(--gold);border:1px solid var(--line);border-radius:2px;padding:0 4px}
+.badge{font:600 9.5px var(--ui);letter-spacing:.12em;padding:2px 6px;border-radius:2px;border:1px solid;white-space:nowrap}
+.badge.e{color:#93c08c;border-color:rgba(147,192,140,.5);background:rgba(147,192,140,.12)}
+.badge.i{color:#e89f4f;border-color:rgba(232,159,79,.55);background:rgba(232,159,79,.13);border-style:dashed}
+
+blockquote{font:italic 20px/1.5 var(--verse);margin:56px 0 0;padding-left:16px;border-left:2px solid var(--gold-deep);max-width:60ch}
+cite{display:block;font:500 11px var(--mono);font-style:normal;color:var(--gold);margin-top:6px}
+footer{padding:36px 0 calc(40px + env(safe-area-inset-bottom));color:var(--faint);font-size:12.5px}
+@media (max-width:560px){
+  .hero{min-height:88vh}
+  .hero img{height:56%;object-position:50% 62%}
+  .hero::after{background:linear-gradient(180deg,rgba(18,15,11,.3) 0%,rgba(18,15,11,0) 18%,rgba(18,15,11,.2) 38%,var(--ground) 56%)}
+  .ctas .btn{flex:1 1 100%;justify-content:center}
+  section{padding-top:40px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<main>
-  <div class="eyebrow">Built from the text</div>
-  <h1>Temple Reconstructions</h1>
-  <p class="lede">Walkable 3D models of Israel's sanctuaries, made to the measurements Scripture gives. Walk up to any object to read what the text says about it and to see what had to be reconstructed where the text is silent.</p>
-  <div class="grid">
-    <a class="card" href="/tabernacle/">
-      <span class="refs">Exodus 25–30</span>
-      <h2>The Tabernacle</h2>
-      <p>Walk the courtyard and tent as Aaron the high priest, dressed in the garments of Exodus 28.</p>
-    </a>
-    <a class="card" href="/solomons-temple/">
-      <span class="refs">1 Kings 6–8 · 2 Chronicles 3–4</span>
-      <h2>Solomon's Temple</h2>
-      <p>Every element tied to the verbatim KJV verses, with cubit and metre dimensions, a guided tour and a blueprint view.</p>
-    </a>
+<header class="hero">
+  <img src="/img/solomons-temple.jpg" alt="The inner court of Solomon's Temple: the porch with the pillars Jachin and Boaz, the molten sea on its oxen, and priests at the brasen altar." fetchpriority="high">
+  <div class="wrap">
+    <div class="eyebrow">Built from the text</div>
+    <h1>Biblical Worlds</h1>
+    <p class="lede">Walk through the Tabernacle and Solomon's Temple, built to the measurements Scripture gives. Walk up to anything to read what the text says about it, and see exactly what had to be reconstructed where the text is silent.</p>
+    <div class="ctas">
+      <a class="btn primary" href="/solomons-temple/" id="ctaTemple">Enter Solomon's Temple</a>
+      <a class="btn" href="/tabernacle/">Enter the Tabernacle</a>
+    </div>
   </div>
-  <blockquote>And let them make me a sanctuary; that I may dwell among them.<cite>Exodus 25:8 (KJV)</cite></blockquote>
+</header>
+
+<main class="wrap">
+  <section aria-labelledby="worldsH">
+    <div class="eyebrow">Worlds</div>
+    <h2 class="sec" id="worldsH">Choose a place to walk</h2>
+    <div class="grid">
+      <a class="world" href="/solomons-temple/" id="wTemple">
+        <div class="shot"><img src="/img/solomons-temple-holy-place.jpg" alt="The Holy Place, lined with carved gold: cherubims and palm trees, ten lampstands and tables, and the doors of the oracle." loading="lazy"></div>
+        <div class="body">
+          <span class="refs">1 Kings 6–8 · 2 Chronicles 3–4</span>
+          <h3>Solomon's Temple</h3>
+          <p>The house, its porch and courts, the palace and the city of David around it. Priests and Levites go about the duties the text describes.</p>
+          <div class="tags"><span>Guided tour</span><span>Blueprint view</span><span>KJV verses</span><span>Cubit switch</span></div>
+          <div class="go">Enter <small>about 330 KB</small></div>
+        </div>
+      </a>
+      <a class="world" href="/tabernacle/">
+        <div class="shot"><img src="/img/tabernacle.jpg" alt="The Tabernacle from above: the courtyard of hangings, the bronze altar, the basin and the tent." loading="lazy"></div>
+        <div class="body">
+          <span class="refs">Exodus 25–30</span>
+          <h3>The Tabernacle</h3>
+          <p>Walk the courtyard and the tent as Aaron the high priest, dressed in the garments of Exodus 28.</p>
+          <div class="tags"><span>Play as Aaron</span><span>Tent coverings</span><span>Robe bells</span></div>
+          <div class="go">Enter <small>about 70 KB</small></div>
+        </div>
+      </a>
+      <div class="world soon" aria-label="Ezekiel's Temple, planned">
+        <div class="shot"><span>In preparation</span></div>
+        <div class="body">
+          <span class="refs">Ezekiel 40–48</span>
+          <h3>Ezekiel's Temple</h3>
+          <p>The temple measured out in Ezekiel's vision, gate by gate, with the long cubit of "a cubit and an hand breadth".</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="howH">
+    <div class="eyebrow">How it works</div>
+    <h2 class="sec" id="howH">Faithful to the text, easy to explore</h2>
+    <div class="how">
+      <div><b>Every part is sourced</b><p>Each object is tied to its verses, quoted in full, with its size in cubits and metres. Each one is marked <span class="badge e">EXPLICIT IN TEXT</span> or <span class="badge i">INTERPRETED</span>, with the alternatives given.</p></div>
+      <div><b>On a laptop</b><p><kbd>W A S D</kbd> to walk, the mouse to look, <kbd>E</kbd> to read. A gamepad works too. Graphics adjust to your machine.</p></div>
+      <div><b>On a phone</b><p>Left thumb to walk, right thumb to look, tap anything to read. The verses open in a sheet you can pull up. Works in portrait or landscape.</p></div>
+      <div><b>Picks up where you left off</b><p>Your place, views and settings are kept in your browser, so you can come back to the same spot.</p></div>
+    </div>
+    <blockquote>And let them make me a sanctuary; that I may dwell among them.<cite>Exodus 25:8 (KJV)</cite></blockquote>
+  </section>
 </main>
+<footer class="wrap">Scripture quotations from the King James Version (public domain). Reconstructions are interpretive where the text is silent. Each world lists its sources.</footer>
+<script>
+// Show "Continue" on a world the visitor has already walked in (saved by the world itself, in this browser).
+try{
+  const s=JSON.parse(localStorage.getItem('biblical-worlds:solomons-temple')||'null');
+  if(s && s.pos){
+    const tag=document.createElement('span'); tag.className='resume'; tag.textContent='Continue';
+    document.querySelector('#wTemple .shot').appendChild(tag);
+    document.getElementById('ctaTemple').textContent="Continue in Solomon's Temple";
+  }
+}catch(_){}
+</script>
 </body>
 </html>
